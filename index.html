@@ -1290,9 +1290,8 @@ function calculateCycle(){
 
   } catch(e){
     console.error('[AES] Chyba:', e);
-    // Show which element is null for debugging
-    const msg = e.message + (e.stack ? '\n\n' + e.stack.split('\n').slice(0,3).join('\n') : '');
-    alert((activeLang==='sk'?'Chyba výpočtu: ':'Calculation error: ') + e.message);
+    const stackLines = e.stack ? e.stack.split('\n').slice(0,5).join(' | ') : '';
+    alert('Chyba výpočtu: ' + e.message + '\n\nStack: ' + stackLines);
   }
 }
 
@@ -1939,9 +1938,9 @@ function displayCapacity(r){
     {lbl:'ṁ', val:mdot_kgh.toFixed(1), u:'kg/h', cls:''},
     {lbl:'COP / EER', val:EER.toFixed(3), u:'W/W', cls:'hl-green'},
     {lbl:'Teor. príkon kompresora', val:(Pth_kW*1000).toFixed(0), u:'W', cls:''},
-  ].map(k=>`<div class="kpi ${k.cls}" ${k.big?'style="grid-column:span 1"':''}">
+  ].map(k=>`<div class="kpi ${k.cls}">
     <div class="kpi-lbl">${k.lbl}</div>
-    <div><span class="kpi-val" ${k.big?'style="font-size:22px"':''}>${k.val}</span><span class="kpi-u"> ${k.u}</span></div>
+    <div><span class="kpi-val" style="${k.big?'font-size:22px':''}">${k.val}</span><span class="kpi-u"> ${k.u}</span></div>
   </div>`).join('');
 
   // Detail table
