@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AES — Chladiaci Okruh Analyzátor v1.0</title>
+<title>AES — Refrigeration System Designer v1.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',Arial,sans-serif;font-size:13px;color:#1e2433;background:#f0f3f9;padding:16px;min-height:100vh}
+body{font-family:'Inter',Arial,sans-serif;font-size:13px;color:#1e2433;background:#f0f3f9;min-height:100vh}
 
 /* ── PIN ── */
 #pinScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0a1628 0%,#0d1f3c 60%,#122a52 100%);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -25,209 +25,253 @@ body{font-family:'Inter',Arial,sans-serif;font-size:13px;color:#1e2433;backgroun
 .pin-btn.wide{grid-column:2/-1}
 .pin-err{color:#E24B4A;font-size:12px;font-weight:600;min-height:18px;margin-top:4px}
 
-/* ── APP LAYOUT ── */
-.app{max-width:1420px;margin:0 auto}
-.topbar{background:linear-gradient(135deg,#0a1628 0%,#0d1f3c 60%,#122a52 100%);border-radius:14px;margin-bottom:18px;overflow:hidden;display:flex;align-items:stretch;box-shadow:0 4px 24px rgba(13,31,60,.25)}
-.tb-logo{width:86px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px 0 0 10px}
-.tb-logo-inner{width:58px;height:58px;background:linear-gradient(135deg,#0d1f3c,#1a4db5);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;font-weight:800}
-.tb-info{flex:1;padding:14px 20px;display:flex;flex-direction:column;justify-content:center}
-.tb-title{font-size:15px;font-weight:700;color:#fff}
-.tb-sub{font-size:10.5px;color:#7aa3cc;margin-top:3px}
-.tb-right{padding:0 20px;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.status-badge{font-size:9.5px;font-weight:700;letter-spacing:.8px;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid;display:flex;align-items:center;gap:6px}
-.st-ok{background:rgba(16,185,129,.15);color:#34d399;border-color:rgba(16,185,129,.35)}
-.st-warn{background:rgba(234,179,8,.15);color:#fbbf24;border-color:rgba(234,179,8,.35)}
-.st-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
-.tb-edit-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.tb-edit-btn:hover{background:rgba(255,255,255,.22)}
-.admin-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.4);border-radius:5px;font-size:9.5px;font-weight:700;color:#fbbf24;font-family:'Inter',sans-serif;flex-shrink:0}
+/* ── APP SHELL ── */
+.app{display:flex;height:100vh;overflow:hidden}
 
-/* ── LANG BAR ── */
-.lang-bar{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:12px}
-.lang-label{font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-right:4px}
-.lang-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid #e4e9f4;border-radius:8px;background:#fafbfd;cursor:pointer;font-size:11px;font-weight:700;color:#7a8299;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
-.lang-btn:hover{border-color:#93b4f0;background:#f0f5ff;color:#2563eb}
-.lang-btn.active{border-color:#2563eb;background:#eef3ff;color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+/* ── SIDEBAR ── */
+.sidebar{width:240px;flex-shrink:0;background:linear-gradient(180deg,#0a1628 0%,#0d1f3c 100%);display:flex;flex-direction:column;overflow:hidden}
+.sb-brand{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo{width:42px;height:42px;background:linear-gradient(135deg,#2563eb,#1a4db5);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.sb-title{font-size:13px;font-weight:800;color:#fff;line-height:1.2}
+.sb-sub{font-size:10px;color:#4d6fa8;margin-top:2px}
+.sb-steps{flex:1;overflow-y:auto;padding:12px 0}
+.sb-step{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;transition:all .15s;position:relative}
+.sb-step:hover{background:rgba(255,255,255,.05)}
+.sb-step.active{background:rgba(37,99,235,.2)}
+.sb-step.active::left{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#2563eb;border-radius:0 2px 2px 0}
+.sb-step-num{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.4);background:transparent;transition:all .15s}
+.sb-step.done .sb-step-num{background:#059669;border-color:#059669;color:#fff}
+.sb-step.active .sb-step-num{background:#2563eb;border-color:#2563eb;color:#fff}
+.sb-step-label{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.45);transition:color .15s;line-height:1.2}
+.sb-step.done .sb-step-label{color:rgba(255,255,255,.7)}
+.sb-step.active .sb-step-label{color:#fff}
+.sb-step-icon{font-size:11px;margin-right:-2px}
+.sb-summary{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-sum-title{font-size:8.5px;font-weight:700;color:#4d6fa8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.sb-kv{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0}
+.sb-kv-l{font-size:10px;color:rgba(255,255,255,.45)}
+.sb-kv-v{font-size:11px;font-weight:700;color:#7dd3fc}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:linear-gradient(135deg,#0a1628 0%,#0d1f3c 60%,#122a52 100%);padding:12px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.tb-title{font-size:14px;font-weight:700;color:#fff;flex:1}
+.tb-sub{font-size:10px;color:#4d6fa8}
+.tb-badge{font-size:9px;font-weight:700;letter-spacing:.8px;padding:4px 10px;border-radius:20px;border:1px solid;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.tb-badge.ok{background:rgba(16,185,129,.15);color:#34d399;border-color:rgba(16,185,129,.35)}
+.tb-badge.warn{background:rgba(234,179,8,.15);color:#fbbf24;border-color:rgba(234,179,8,.35)}
+.tb-badge.err{background:rgba(220,38,38,.15);color:#f87171;border-color:rgba(220,38,38,.35)}
+.tb-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.save-proj-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:5px 12px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.save-proj-btn:hover{background:rgba(255,255,255,.2)}
+
+.content{flex:1;overflow-y:auto;padding:24px}
+
+/* ── STEP HEADER ── */
+.step-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.step-icon-big{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.si-blue{background:linear-gradient(135deg,#2563eb,#1a4db5)}
+.si-green{background:linear-gradient(135deg,#059669,#047857)}
+.si-orange{background:linear-gradient(135deg,#ea580c,#c2410c)}
+.si-purple{background:linear-gradient(135deg,#7c3aed,#5b21b6)}
+.si-teal{background:linear-gradient(135deg,#0891b2,#0e7490)}
+.si-red{background:linear-gradient(135deg,#dc2626,#b91c1c)}
+.si-gray{background:linear-gradient(135deg,#475569,#334155)}
+.si-gold{background:linear-gradient(135deg,#d97706,#b45309)}
+.step-title{font-size:18px;font-weight:800;color:#0d1f3c}
+.step-desc{font-size:11px;color:#9aa3b8;margin-top:2px}
 
 /* ── CARDS ── */
 .card{background:#fff;border:1px solid #e4e9f4;border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
-.card-header{display:flex;align-items:center;gap:9px;margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid #f0f3f9}
-.card-num{width:26px;height:26px;background:linear-gradient(135deg,#2563eb,#1a4db5);color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-.card-num.green{background:linear-gradient(135deg,#059669,#047857)}
-.card-num.orange{background:linear-gradient(135deg,#ea580c,#c2410c)}
-.card-num.purple{background:linear-gradient(135deg,#7c3aed,#5b21b6)}
-.card-title{font-size:13.5px;font-weight:700;color:#0d1f3c}
-.card-hint{font-size:9.5px;color:#9aa3b8;margin-left:auto;padding:3px 8px;background:#f8faff;border:1px solid #e4e9f4;border-radius:5px;white-space:nowrap}
+.card-title{font-size:12px;font-weight:700;color:#0d1f3c;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title::before{content:'';width:3px;height:14px;background:#2563eb;border-radius:2px;flex-shrink:0}
+.card-title.green::before{background:#059669}
+.card-title.orange::before{background:#ea580c}
+.card-title.purple::before{background:#7c3aed}
 
-/* ── MAIN GRID ── */
-.main-layout{display:grid;grid-template-columns:1fr 460px;gap:14px;align-items:start}
-@media(max-width:1000px){.main-layout{grid-template-columns:1fr}}
-
-/* ── FORM ELEMENTS ── */
+/* ── FORM ── */
 .f{display:flex;flex-direction:column;gap:4px}
 .f label{font-size:9.5px;color:#7a8299;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
-.f input,.f select{width:100%;padding:8px 10px;border:1.5px solid #e4e9f4;border-radius:8px;font-size:12px;color:#1e2433;font-family:'Inter',sans-serif;background:#fafbfd;transition:border-color .15s,box-shadow .15s}
-.f input:focus,.f select:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);background:#fff}
+.f input,.f select,.f textarea{width:100%;padding:8px 10px;border:1.5px solid #e4e9f4;border-radius:8px;font-size:12px;color:#1e2433;font-family:'Inter',sans-serif;background:#fafbfd;transition:border-color .15s,box-shadow .15s}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);background:#fff}
+.f input.has-val{border-color:#059669;background:#f0fdf8}
+.f input.warn-val{border-color:#ea580c;background:#fff7ed}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
-.sec-label{font-size:9px;font-weight:700;color:#2563eb;letter-spacing:2px;text-transform:uppercase;margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.sec-label{font-size:9px;font-weight:700;color:#2563eb;letter-spacing:2px;text-transform:uppercase;margin:16px 0 10px;display:flex;align-items:center;gap:8px}
 .sec-label::after{content:'';flex:1;height:1px;background:#e4e9f4}
 .sec-label.green{color:#059669}
 .sec-label.orange{color:#ea580c}
-.sec-label.purple{color:#7c3aed}
 .sec-label.gray{color:#6b7280}
 
-/* ── BLOCK DIAGRAM ── */
-.circuit-svg-wrap{background:#f8faff;border:1.5px solid #e4e9f4;border-radius:10px;overflow:hidden;margin-bottom:16px}
-.circuit-svg-wrap svg{display:block;width:100%;height:auto}
+/* ── COMPONENT DB PANEL ── */
+.db-panel{background:#f8faff;border:1.5px solid #e4e9f4;border-radius:10px;padding:14px;margin-bottom:14px}
+.db-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.db-title{font-size:11px;font-weight:700;color:#0d1f3c}
+.db-import-btn{margin-left:auto;padding:5px 12px;background:#fff;border:1.5px solid #2563eb;color:#2563eb;border-radius:7px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.db-import-btn:hover{background:#eef3ff}
+.db-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;max-height:240px;overflow-y:auto;padding-right:4px}
+.db-card{border:1.5px solid #e4e9f4;border-radius:9px;padding:10px 12px;background:#fff;cursor:pointer;transition:all .15s}
+.db-card:hover{border-color:#93b4f0;background:#f0f5ff}
+.db-card.selected{border-color:#2563eb;background:#eef3ff;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+.db-card-brand{font-size:8.5px;font-weight:700;color:#9aa3b8;text-transform:uppercase;letter-spacing:.8px}
+.db-card-model{font-size:12.5px;font-weight:700;color:#0d1f3c;margin:2px 0}
+.db-card-specs{font-size:10px;color:#6b7280;line-height:1.5}
+.db-card-ref{display:inline-flex;align-items:center;gap:3px;background:#f0f5ff;border:1px solid #c7d7f8;border-radius:4px;padding:1px 6px;font-size:9px;font-weight:700;color:#2563eb;margin-top:4px}
+.db-filter{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.db-filter-btn{padding:4px 10px;border:1.5px solid #e4e9f4;border-radius:6px;background:#fff;font-size:10px;font-weight:600;color:#7a8299;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.db-filter-btn:hover{border-color:#93b4f0;color:#2563eb}
+.db-filter-btn.active{border-color:#2563eb;background:#eef3ff;color:#2563eb}
 
-/* ── POINT INPUT PANELS ── */
-.pt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.pt-panel{background:#fafbfd;border:1.5px solid #e4e9f4;border-radius:10px;padding:12px 14px}
-.pt-panel.pt1{border-color:#93c5fd;background:#eff6ff}
-.pt-panel.pt2{border-color:#fca5a5;background:#fff1f2}
-.pt-panel.pt3{border-color:#6ee7b7;background:#ecfdf5}
-.pt-panel.pt4{border-color:#c4b5fd;background:#f5f3ff}
-.pt-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.pt-circle{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;color:#fff}
-.pt-circle.c1{background:#2563eb}
-.pt-circle.c2{background:#dc2626}
-.pt-circle.c3{background:#059669}
-.pt-circle.c4{background:#7c3aed}
-.pt-name{font-size:11px;font-weight:700;color:#0d1f3c}
-.pt-sub{font-size:9px;color:#9aa3b8}
+/* ── PIPE PANELS ── */
+.pipe-panel{border-radius:10px;padding:14px;border:1.5px solid}
+.pipe-suc{background:#eff6ff;border-color:#93c5fd}
+.pipe-dis{background:#fff1f2;border-color:#fca5a5}
+.pipe-liq{background:#ecfdf5;border-color:#6ee7b7}
+.pipe-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pipe-circle{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0}
+.pc-suc{background:#2563eb}
+.pc-dis{background:#dc2626}
+.pc-liq{background:#059669}
+.pipe-name{font-size:11px;font-weight:700;color:#0d1f3c}
+.pipe-sub{font-size:9px;color:#9aa3b8}
+.vel-rec{font-size:9px;color:#7a8299;margin-top:6px;padding:4px 8px;background:rgba(255,255,255,.7);border-radius:5px}
 
 /* ── BUTTONS ── */
-.calc-btn{width:100%;padding:15px;background:linear-gradient(135deg,#2563eb,#1a4db5);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:'Inter',sans-serif;box-shadow:0 4px 16px rgba(37,99,235,.3);transition:all .2s}
-.calc-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
-.calc-btn:disabled{background:#b0bfd8;cursor:not-allowed;transform:none;box-shadow:none}
-.reset-btn{width:100%;padding:10px;background:#fff;border:1.5px solid #e4e9f4;color:#7a8299;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
-.reset-btn:hover{border-color:#E24B4A;color:#E24B4A}
+.nav-bar{display:flex;gap:10px;align-items:center;padding:16px 24px;background:#fff;border-top:1px solid #e4e9f4;flex-shrink:0}
+.btn-prev{padding:11px 24px;background:#fff;border:1.5px solid #e4e9f4;color:#7a8299;border-radius:10px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.btn-prev:hover{border-color:#94a3b8;color:#1e2433}
+.btn-next{padding:11px 28px;background:linear-gradient(135deg,#2563eb,#1a4db5);color:#fff;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 14px rgba(37,99,235,.3);transition:all .2s}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(37,99,235,.4)}
+.btn-calc{padding:11px 28px;background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 14px rgba(5,150,105,.3);transition:all .2s}
+.btn-calc:hover:not(:disabled){transform:translateY(-1px)}
+.btn-calc:disabled{background:#b0bfd8;cursor:not-allowed;box-shadow:none}
+.step-counter{font-size:10px;color:#9aa3b8;margin-left:auto}
 
 /* ── RESULTS ── */
-.res-state-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.res-state-pt{border-radius:9px;padding:11px 12px}
-.rs1{background:#eff6ff;border:1px solid #93c5fd}
-.rs2{background:#fff1f2;border:1px solid #fca5a5}
-.rs3{background:#ecfdf5;border:1px solid #6ee7b7}
-.rs4{background:#f5f3ff;border:1px solid #c4b5fd}
-.rs-ptnum{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
-.rs1 .rs-ptnum{color:#2563eb}
-.rs2 .rs-ptnum{color:#dc2626}
-.rs3 .rs-ptnum{color:#059669}
-.rs4 .rs-ptnum{color:#7c3aed}
-.rs-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:#4b5563;padding:1px 0}
-.rs-val{font-weight:700;color:#0d1f3c;font-size:11.5px}
-
-.kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
-.kpi{background:#f8faff;border:1px solid #e4e9f4;border-radius:9px;padding:11px;text-align:center}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:#f8faff;border:1px solid #e4e9f4;border-radius:10px;padding:14px;text-align:center}
 .kpi.hl-blue{border-color:#93c5fd;background:#eff6ff}
 .kpi.hl-green{border-color:#6ee7b7;background:#ecfdf5}
 .kpi.hl-orange{border-color:#fed7aa;background:#fff7ed}
+.kpi.hl-red{border-color:#fca5a5;background:#fff1f2}
 .kpi-lbl{font-size:8.5px;color:#9aa3b8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.kpi-val{font-size:18px;font-weight:800;color:#0d1f3c}
-.kpi-u{font-size:9.5px;color:#9aa3b8;margin-left:2px}
+.kpi-val{font-size:22px;font-weight:800;color:#0d1f3c}
+.kpi-u{font-size:10px;color:#9aa3b8;margin-left:2px}
 .kpi.hl-blue .kpi-val{color:#2563eb}
 .kpi.hl-green .kpi-val{color:#059669}
 .kpi.hl-orange .kpi-val{color:#ea580c}
+.kpi.hl-red .kpi-val{color:#dc2626}
 
-.extra-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.ev{background:#f8faff;border:1px solid #e4e9f4;border-radius:8px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center}
-.ev-lbl{font-size:10px;color:#7a8299;font-weight:600}
-.ev-val{font-size:12px;font-weight:700;color:#0d1f3c}
-.ev-u{font-size:9px;color:#9aa3b8}
-
-/* ── P-H DIAGRAM ── */
-.ph-wrap{background:#fafbfd;border:1.5px solid #e4e9f4;border-radius:10px;overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center}
-.ph-placeholder{text-align:center;color:#9aa3b8;padding:40px 20px}
-.ph-placeholder .ph-icon{font-size:40px;margin-bottom:10px}
-.ph-placeholder p{font-size:12px}
-
-/* ── DIAGNOSTICS ── */
-.diag-empty{text-align:center;padding:30px;color:#9aa3b8}
-.diag-empty span{font-size:32px;display:block;margin-bottom:8px}
-.fault-item{border-radius:10px;padding:12px 14px;margin-bottom:8px;border:1.5px solid}
-.fault-critical{background:#fff1f2;border-color:#fca5a5}
-.fault-warning{background:#fffbeb;border-color:#fcd34d}
-.fault-info{background:#f0fdf4;border-color:#a7f3d0}
-.fault-ok{background:#f0fdf4;border-color:#6ee7b7}
-.fault-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.fault-badge{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:4px;text-transform:uppercase}
-.fb-critical{background:#fca5a5;color:#7f1d1d}
-.fb-warning{background:#fde68a;color:#78350f}
-.fb-info{background:#a7f3d0;color:#064e3b}
-.fault-name{font-size:12px;font-weight:700;color:#0d1f3c}
-.fault-conf{font-size:9px;color:#9aa3b8;margin-left:auto;font-weight:600}
-.fault-desc{font-size:11px;color:#4b5563;margin-bottom:6px;line-height:1.5}
-.fault-causes{font-size:10px;color:#6b7280;margin-bottom:4px}
-.fault-causes strong{color:#4b5563}
-.fault-action{display:inline-block;font-size:9.5px;background:#fff;border:1px solid #e4e9f4;border-radius:5px;padding:2px 8px;margin:2px 2px 2px 0;color:#2563eb;font-weight:600}
-
-/* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
-.modal-box{background:#fff;border-radius:16px;width:100%;max-width:500px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.4);overflow:hidden}
-.modal-head{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid #f0f3f9;flex-shrink:0}
-.modal-head-icon{width:34px;height:34px;background:linear-gradient(135deg,#2563eb,#1a4db5);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.modal-title{font-size:15px;font-weight:700;color:#0d1f3c;flex:1}
-.modal-close{width:30px;height:30px;border:none;background:#f0f3f9;border-radius:7px;font-size:16px;cursor:pointer;color:#7a8299;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
-.modal-close:hover{background:#fee2e2;color:#E24B4A}
-.modal-body{flex:1;overflow-y:auto;padding:18px 22px}
-.modal-foot{padding:14px 22px;border-top:1px solid #f0f3f9;display:flex;gap:8px;align-items:center;flex-shrink:0;background:#fafbfd}
-.save-btn{padding:8px 20px;background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-left:auto}
-.cancel-btn{padding:8px 16px;background:#fff;border:1.5px solid #e4e9f4;color:#7a8299;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
-.cancel-btn:hover{border-color:#E24B4A;color:#E24B4A}
-.logo-upload-area{width:80px;height:80px;border:2px dashed #93b4f0;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:#f8faff;flex-shrink:0}
-.logo-upload-area:hover{border-color:#2563eb;background:#eef3ff}
-.lu-hint{font-size:9px;color:#9aa3b8;text-align:center;padding:4px;line-height:1.3}
-
-/* ── INFO BAR ── */
-.info-bar{background:#0d1f3c;border:1px solid #1e3a5f;border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:10px;line-height:1.5}
-.info-bar strong{color:#7dd3fc}
-.info-ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:9px 14px;margin-bottom:14px;font-size:11px;color:#065f46;display:flex;align-items:center;gap:8px}
-
-/* ── LEGEND ── */
-.ph-legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 12px;font-size:10px;color:#7a8299;border-top:1px solid #e4e9f4}
-.ph-leg-item{display:flex;align-items:center;gap:5px}
-.ph-leg-line{width:20px;height:3px;border-radius:2px}
-
-/* ── COMPACT RESULT TABLE ── */
-.res-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:10px}
-.res-table th{background:#f0f3f9;color:#7a8299;font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:6px 10px;text-align:left}
-.res-table td{padding:6px 10px;border-bottom:1px solid #f8faff;vertical-align:middle}
+.res-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:12px}
+.res-table th{background:#f0f3f9;color:#7a8299;font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;text-align:left}
+.res-table td{padding:7px 10px;border-bottom:1px solid #f8faff;vertical-align:middle}
 .res-table tr:last-child td{border-bottom:none}
-.res-table tr:hover td{background:#fafbfd}
 .res-table .num{text-align:right;font-weight:700;color:#0d1f3c;font-variant-numeric:tabular-nums}
-.res-table .unit{text-align:left;color:#9aa3b8;font-size:10px;padding-left:4px}
+.res-table .unit{text-align:left;color:#9aa3b8;font-size:10px}
 .res-table .row-ok td{background:#f0fdf8}
 .res-table .row-warn td{background:#fffbeb}
 .res-table .row-crit td{background:#fff1f2}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700}
+.badge-ok{background:#d1fae5;color:#065f46}
+.badge-warn{background:#fde68a;color:#78350f}
+.badge-crit{background:#fee2e2;color:#7f1d1d}
+.badge-info{background:#dbeafe;color:#1e40af}
+
+/* ── PHASE TAGS ── */
+.tag{display:inline-flex;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.tag-blue{background:#dbeafe;color:#1e40af}
+.tag-red{background:#fee2e2;color:#7f1d1d}
+.tag-green{background:#d1fae5;color:#065f46}
+.tag-gray{background:#f1f5f9;color:#475569}
+
+/* ── P-H CANVAS ── */
+.ph-wrap{background:#0f172a;border-radius:10px;overflow:hidden;margin-bottom:12px}
+canvas{display:block;width:100%;height:auto}
+.ph-legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 12px;font-size:10px;color:#7a8299;border-top:1px solid #e4e9f4;background:#fff}
+.ph-leg-item{display:flex;align-items:center;gap:5px}
+.ph-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ph-leg-line{width:22px;height:3px;border-radius:2px;flex-shrink:0}
+
+/* ── VALIDATION ── */
+.val-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:9px;margin-bottom:6px;border:1px solid}
+.val-ok{background:#f0fdf8;border-color:#a7f3d0}
+.val-warn{background:#fffbeb;border-color:#fcd34d}
+.val-crit{background:#fff1f2;border-color:#fca5a5}
+.val-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.val-name{font-size:12px;font-weight:700;color:#0d1f3c}
+.val-desc{font-size:10.5px;color:#6b7280;margin-top:2px;line-height:1.5}
+
+/* ── RADIO BUTTONS ── */
+.radio-group{display:flex;gap:8px;flex-wrap:wrap}
+.radio-opt{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1.5px solid #e4e9f4;border-radius:8px;cursor:pointer;background:#fafbfd;transition:all .15s}
+.radio-opt:hover{border-color:#93b4f0;background:#f0f5ff}
+.radio-opt.selected{border-color:#2563eb;background:#eef3ff}
+.radio-opt input[type=radio]{display:none}
+.radio-label{font-size:11.5px;font-weight:600;color:#4b5563}
+.radio-opt.selected .radio-label{color:#1e40af}
+
+/* ── TOGGLE ── */
+.toggle-wrap{display:flex;align-items:center;gap:10px}
+.toggle{width:36px;height:20px;background:#e4e9f4;border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#2563eb}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(16px)}
+.toggle-label{font-size:11.5px;font-weight:600;color:#4b5563}
+
+/* ── INFO BOX ── */
+.info-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;font-size:11px;color:#1e40af;display:flex;gap:8px;align-items:flex-start;margin-bottom:12px}
+.warn-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:11px;color:#78350f;display:flex;gap:8px;align-items:flex-start;margin-bottom:12px}
+
+/* ── RESULTS LAYOUT ── */
+.res-2col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.state-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.state-pt{border-radius:9px;padding:11px 12px}
+.sp1{background:#eff6ff;border:1px solid #93c5fd}
+.sp2{background:#fff1f2;border:1px solid #fca5a5}
+.sp3{background:#ecfdf5;border:1px solid #6ee7b7}
+.sp4{background:#f5f3ff;border:1px solid #c4b5fd}
+.sp-num{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.sp1 .sp-num{color:#2563eb}
+.sp2 .sp-num{color:#dc2626}
+.sp3 .sp-num{color:#059669}
+.sp4 .sp-num{color:#7c3aed}
+.sp-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:#4b5563;padding:1.5px 0}
+.sp-val{font-weight:700;color:#0d1f3c;font-size:11.5px}
+
+/* ── LOADING ── */
+.calc-loading{text-align:center;padding:60px 20px;color:#9aa3b8}
+.calc-spinner{width:40px;height:40px;border:3px solid #e4e9f4;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c8d0e0;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+@media(max-width:900px){.sidebar{display:none}.kpi-row{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 
-<!-- ═══ PIN SCREEN ═══ -->
+<!-- ═══ PIN ═══ -->
 <div id="pinScreen">
   <div class="pin-box">
-    <div class="pin-logo">🔬</div>
-    <div class="pin-title">AES Circuit Analyzer</div>
-    <div class="pin-sub" id="pinSubTxt">Zadajte PIN pre prístup · v1.0</div>
-    <div class="pin-dots" id="pinDots">
+    <div class="pin-logo">🔧</div>
+    <div class="pin-title">AES System Designer</div>
+    <div class="pin-sub">Refrigeration Circuit Design Tool · v1.0</div>
+    <div class="pin-dots">
       <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="pin-btn-grid">
-      <button class="pin-btn" onclick="pinPress('1')">1</button>
-      <button class="pin-btn" onclick="pinPress('2')">2</button>
-      <button class="pin-btn" onclick="pinPress('3')">3</button>
-      <button class="pin-btn" onclick="pinPress('4')">4</button>
-      <button class="pin-btn" onclick="pinPress('5')">5</button>
-      <button class="pin-btn" onclick="pinPress('6')">6</button>
-      <button class="pin-btn" onclick="pinPress('7')">7</button>
-      <button class="pin-btn" onclick="pinPress('8')">8</button>
-      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn" onclick="pinPress('1')">1</button><button class="pin-btn" onclick="pinPress('2')">2</button><button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button><button class="pin-btn" onclick="pinPress('5')">5</button><button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button><button class="pin-btn" onclick="pinPress('8')">8</button><button class="pin-btn" onclick="pinPress('9')">9</button>
       <button class="pin-btn" style="grid-column:1" onclick="pinPress('0')">0</button>
-      <button class="pin-btn wide" onclick="pinBack()">⌫ Vymazať</button>
+      <button class="pin-btn wide" onclick="pinBack()">⌫ Delete</button>
     </div>
     <div class="pin-err" id="pinErr"></div>
   </div>
@@ -236,1815 +280,1146 @@ body{font-family:'Inter',Arial,sans-serif;font-size:13px;color:#1e2433;backgroun
 <!-- ═══ APP ═══ -->
 <div class="app" id="appMain" style="display:none">
 
-  <!-- Language bar -->
-  <div class="lang-bar">
-    <span class="lang-label">Language</span>
-    <button class="lang-btn active" id="lb_sk" onclick="setLang('sk')"><span>🇸🇰</span> Slovensky</button>
-    <button class="lang-btn" id="lb_en" onclick="setLang('en')"><span>🇬🇧</span> English</button>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">🔧</div>
+      <div class="sb-title">AES System Designer</div>
+      <div class="sb-sub">Refrigeration Design Tool v1.0</div>
+    </div>
+    <div class="sb-steps" id="sbSteps">
+      <div class="sb-step active" onclick="goStep(1)" id="ss1"><div class="sb-step-num" id="sn1">1</div><div><div class="sb-step-label">🏗 Project Setup</div></div></div>
+      <div class="sb-step" onclick="goStep(2)" id="ss2"><div class="sb-step-num" id="sn2">2</div><div><div class="sb-step-label">🌡 Design Conditions</div></div></div>
+      <div class="sb-step" onclick="goStep(3)" id="ss3"><div class="sb-step-num" id="sn3">3</div><div><div class="sb-step-label">🔧 Compressor</div></div></div>
+      <div class="sb-step" onclick="goStep(4)" id="ss4"><div class="sb-step-num" id="sn4">4</div><div><div class="sb-step-label">❄ Evaporator</div></div></div>
+      <div class="sb-step" onclick="goStep(5)" id="ss5"><div class="sb-step-num" id="sn5">5</div><div><div class="sb-step-label">🔥 Condenser</div></div></div>
+      <div class="sb-step" onclick="goStep(6)" id="ss6"><div class="sb-step-num" id="sn6">6</div><div><div class="sb-step-label">🔑 Expansion Valve</div></div></div>
+      <div class="sb-step" onclick="goStep(7)" id="ss7"><div class="sb-step-num" id="sn7">7</div><div><div class="sb-step-label">🔩 Piping</div></div></div>
+      <div class="sb-step" onclick="goStep(8)" id="ss8"><div class="sb-step-num" id="sn8">8</div><div><div class="sb-step-label">📊 Results</div></div></div>
+    </div>
+    <div class="sb-summary">
+      <div class="sb-sum-title">Project Summary</div>
+      <div class="sb-kv"><span class="sb-kv-l">Refrigerant</span><span class="sb-kv-v" id="sum_ref">—</span></div>
+      <div class="sb-kv"><span class="sb-kv-l">System type</span><span class="sb-kv-v" id="sum_type">—</span></div>
+      <div class="sb-kv"><span class="sb-kv-l">Te / Tc</span><span class="sb-kv-v" id="sum_temps">—</span></div>
+      <div class="sb-kv"><span class="sb-kv-l">Compressor</span><span class="sb-kv-v" id="sum_comp">—</span></div>
+      <div class="sb-kv"><span class="sb-kv-l">Q̇ req.</span><span class="sb-kv-v" id="sum_qreq">—</span></div>
+    </div>
   </div>
 
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="tb-logo" onclick="openHeaderEditor()" title="Kliknite pre úpravu hlavičky" style="cursor:pointer">
-      <div class="tb-logo-inner" id="tbLogoInner">🔬</div>
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="tb-title" id="tb_proj_name">New Project — AES System Designer</div>
+        <div class="tb-sub">AES s.r.o. — Advanced Energy Systems | Refrigeration Circuit Design</div>
+      </div>
+      <div class="tb-badge warn" id="cpBadge"><span class="tb-dot"></span>CoolProp loading…</div>
+      <button class="save-proj-btn" onclick="saveProject()">💾 Save project</button>
+      <label class="save-proj-btn" style="cursor:pointer">📂 Load<input type="file" accept=".json" style="display:none" onchange="loadProject(event)"></label>
     </div>
-    <div class="tb-info" onclick="openHeaderEditor()" style="cursor:pointer">
-      <div class="tb-title" id="tbTitleEl">AES — Chladiaci Okruh Analyzátor</div>
-      <div class="tb-sub" id="tbSubEl">Diagnostika reálneho chladiaceho okruhu · P-H diagram · CoolProp | AES s.r.o. — Advanced Energy Systems</div>
+
+    <div class="content" id="stepContent">
+      <!-- Steps rendered by JS -->
     </div>
-    <div class="tb-right">
-      <div class="status-badge st-warn" id="cpBadge"><span class="st-dot"></span>CoolProp načítava...</div>
-      <span class="admin-badge" id="adminBadge" style="display:none">⚡ ADMIN</span>
-      <button class="tb-edit-btn" id="tbEditBtn" onclick="openHeaderEditor()">✏️ Upraviť hlavičku</button>
+
+    <div class="nav-bar">
+      <button class="btn-prev" id="btnPrev" onclick="prevStep()">← Back</button>
+      <button class="btn-next" id="btnNext" onclick="nextStep()">Next →</button>
+      <button class="btn-calc" id="btnCalc" style="display:none" onclick="runCalculation()">🧮 Calculate Cycle</button>
+      <span class="step-counter" id="stepCounter">Step 1 of 8</span>
     </div>
   </div>
 
-  <!-- CoolProp info bar -->
-  <div class="info-bar" id="cpInfoBar">
-    <span style="font-size:16px">⏳</span>
-    <span id="cpInfoTxt"><strong>CoolProp WASM</strong> sa načítava z lokálneho súboru <strong>coolprop.wasm</strong>. Kalkulácia bude dostupná po dokončení načítania.</span>
-  </div>
-
-  <!-- Main layout -->
-  <div class="main-layout">
-
-    <!-- ── LEFT COLUMN ── -->
-    <div>
-
-      <!-- Card 1: Refrigerant setup -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-num">1</div>
-          <div class="card-title" data-i18n="card1_title">Chladivo a nastavenie</div>
-          <div class="card-hint" data-i18n="card1_hint">Povinné nastavenie</div>
-        </div>
-        <div class="g2">
-          <div class="f">
-            <label data-i18n="lbl_refrigerant">Chladivo</label>
-            <select id="refrigerantSel" onchange="onRefrigChange()">
-              <option value="R134a">R134a (HFC)</option>
-              <option value="R404A">R404A (HFC blend)</option>
-              <option value="R410A" selected>R410A (HFC)</option>
-              <option value="R407C">R407C (HFC blend)</option>
-              <option value="R22">R22 (HCFC)</option>
-              <option value="R290">R290 – Propán</option>
-              <option value="R600a">R600a – Izobután</option>
-              <option value="R32">R32 (HFC)</option>
-              <option value="R448A">R448A (HFO blend)</option>
-              <option value="R449A">R449A (HFO blend)</option>
-              <option value="R717">R717 – Amoniak (NH3)</option>
-            </select>
-          </div>
-          <div class="f">
-            <label data-i18n="lbl_apptype">Typ aplikácie</label>
-            <select id="appType">
-              <option value="ac" data-i18n="app_ac">Klimatizácia (AC)</option>
-              <option value="ref_med" data-i18n="app_ref_med">Chladenie stredné (+5 až -15°C)</option>
-              <option value="ref_low" data-i18n="app_ref_low">Chladenie nízke (-15 až -40°C)</option>
-              <option value="hp" data-i18n="app_hp">Tepelné čerpadlo</option>
-            </select>
-          </div>
-        </div>
-        <div class="sec-label gray" data-i18n="sec_pressure_unit">Jednotka tlaku</div>
-        <div style="display:flex;gap:8px">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:600;color:#0d1f3c">
-            <input type="radio" name="punit" value="bara" checked onchange="updatePressureLabels()"> bar(a) – absolútny
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:600;color:#0d1f3c;margin-left:14px">
-            <input type="radio" name="punit" value="barg" onchange="updatePressureLabels()"> bar(g) – manometrický
-          </label>
-        </div>
-      </div>
-
-      <!-- Card 2: Block diagram + measured values -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-num" style="background:linear-gradient(135deg,#0d9488,#0f766e)">2</div>
-          <div class="card-title" data-i18n="card2_title">Bloková schéma — namerané hodnoty</div>
-        </div>
-
-        <!-- SVG Circuit Diagram – Kondenzátor HORE, Kompresor VPRAVO, Výparník DOLE, Exp. ventil VĽAVO -->
-        <div class="circuit-svg-wrap">
-          <svg id="circuitSvg" viewBox="0 0 660 330" xmlns="http://www.w3.org/2000/svg" style="background:linear-gradient(135deg,#f8faff,#f0f4ff)">
-
-            <!-- ══ HP / LP REGION LABELS ══ -->
-            <text x="330" y="17" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#dc2626" letter-spacing="1.5">HP — VYSOKÝ TLAK</text>
-            <text x="330" y="316" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#2563eb" letter-spacing="1.5">LP — NÍZKY TLAK</text>
-
-            <!-- ══ PIPE LOOP ══
-                 Flow: Pt1(bot-right) →UP→ Kompresor →UP→ Pt2(top-right)
-                       →LEFT→ Kondenzátor →LEFT→ Pt3(top-left)
-                       →DOWN→ Exp.ventil  →DOWN→ Pt4(bot-left)
-                       →RIGHT→ Výparník   →RIGHT→ Pt1
-            -->
-
-            <!-- RIGHT PIPE – LP suction (blue): Pt1(bot-right) up to compressor -->
-            <line x1="512" y1="218" x2="512" y2="252" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
-            <!-- RIGHT PIPE – HP discharge (red): compressor up to Pt2(top-right) -->
-            <line x1="512" y1="78" x2="512" y2="118" stroke="#fca5a5" stroke-width="5" stroke-linecap="round"/>
-
-            <!-- TOP PIPE – HP hot gas (red): Pt2(top-right) → Kondenzátor → Pt3(top-left) -->
-            <line x1="148" y1="78" x2="228" y2="78" stroke="#fca5a5" stroke-width="5" stroke-linecap="round"/>
-            <line x1="432" y1="78" x2="512" y2="78" stroke="#fca5a5" stroke-width="5" stroke-linecap="round"/>
-
-            <!-- LEFT PIPE – HP liquid (green): Pt3(top-left) down to exp.valve -->
-            <line x1="148" y1="78" x2="148" y2="118" stroke="#6ee7b7" stroke-width="5" stroke-linecap="round"/>
-            <!-- LEFT PIPE – LP two-phase (purple): exp.valve down to Pt4(bot-left) -->
-            <line x1="148" y1="218" x2="148" y2="252" stroke="#c4b5fd" stroke-width="5" stroke-linecap="round"/>
-
-            <!-- BOTTOM PIPE – LP evaporation (blue): Pt4(bot-left) → Výparník → Pt1(bot-right) -->
-            <line x1="148" y1="252" x2="228" y2="252" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
-            <line x1="432" y1="252" x2="512" y2="252" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
-
-            <!-- ══ FLOW ARROWS ══ -->
-            <!-- Right pipe UP (suction → compressor → discharge) -->
-            <polygon points="512,155 506.5,167 517.5,167" fill="#dc2626"/>
-            <!-- Top pipe LEFT (HP gas condensing → Pt3) -->
-            <polygon points="260,78 272,72.5 272,83.5" fill="#dc2626"/>
-            <!-- Left pipe DOWN (liquid → expansion → two-phase) -->
-            <polygon points="148,175 142.5,163 153.5,163" fill="#059669"/>
-            <!-- Bottom pipe RIGHT (two-phase evaporating → Pt1) -->
-            <polygon points="400,252 388,246.5 388,257.5" fill="#2563eb"/>
-
-            <!-- ══ COMPONENTS ══ -->
-
-            <!-- KONDENZÁTOR (TOP) -->
-            <rect x="228" y="28" width="204" height="60" rx="11" fill="#fff1f2" stroke="#fca5a5" stroke-width="2.5"/>
-            <text x="330" y="52" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#7f1d1d">☀ KONDENZÁTOR</text>
-            <text x="330" y="67" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" fill="#dc2626">Condenser</text>
-
-            <!-- KOMPRESOR (RIGHT) -->
-            <rect x="484" y="118" width="80" height="100" rx="11" fill="#eff6ff" stroke="#93c5fd" stroke-width="2.5"/>
-            <text x="524" y="153" text-anchor="middle" font-family="Inter,sans-serif" font-size="16">🔧</text>
-            <text x="524" y="170" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#1e3a5f">KOMPRESOR</text>
-            <text x="524" y="183" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="#3b82f6">Compressor</text>
-            <text x="524" y="196" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" fill="#93b4f0">↑ sanie  výtlak ↑</text>
-
-            <!-- VÝPARNÍK (BOTTOM) -->
-            <rect x="228" y="242" width="204" height="60" rx="11" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2.5"/>
-            <text x="330" y="266" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#064e3b">❄ VÝPARNÍK</text>
-            <text x="330" y="281" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" fill="#059669">Evaporator</text>
-
-            <!-- EXP. VENTIL (LEFT) -->
-            <rect x="96" y="118" width="80" height="100" rx="11" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2.5"/>
-            <text x="136" y="153" text-anchor="middle" font-family="Inter,sans-serif" font-size="16">🔩</text>
-            <text x="136" y="170" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#4c1d95">EXP. VENTIL</text>
-            <text x="136" y="183" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="#7c3aed">Exp. Valve</text>
-            <text x="136" y="196" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" fill="#a78bfa">h₃=h₄</text>
-
-            <!-- ══ MEASUREMENT POINT CIRCLES ══
-                 Pt1 = bot-right  (LP sanie),   Pt2 = top-right (HP výtlak)
-                 Pt3 = top-left   (HP kvapalina), Pt4 = bot-left (LP 2-fáza) -->
-
-            <!-- Pt 1 – Bottom-Right: LP suction (Výparník → Kompresor) -->
-            <circle cx="512" cy="252" r="14" fill="#2563eb" stroke="#fff" stroke-width="3"/>
-            <text x="512" y="257" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">1</text>
-
-            <!-- Pt 2 – Top-Right: HP discharge (Kompresor → Kondenzátor) -->
-            <circle cx="512" cy="78" r="14" fill="#dc2626" stroke="#fff" stroke-width="3"/>
-            <text x="512" y="83" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">2</text>
-
-            <!-- Pt 3 – Top-Left: HP liquid (Kondenzátor → Exp.ventil) -->
-            <circle cx="148" cy="78" r="14" fill="#059669" stroke="#fff" stroke-width="3"/>
-            <text x="148" y="83" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">3</text>
-
-            <!-- Pt 4 – Bottom-Left: LP two-phase (Exp.ventil → Výparník) -->
-            <circle cx="148" cy="252" r="14" fill="#7c3aed" stroke="#fff" stroke-width="3"/>
-            <text x="148" y="257" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">4</text>
-
-            <!-- ══ LIVE VALUE DISPLAYS ══ -->
-
-            <!-- Pt 1 (bot-right) — values right side, aligned to right pipe -->
-            <g id="dv1_group">
-              <text x="530" y="246" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#2563eb">T₁ = <tspan id="dv_T1">—</tspan> °C</text>
-              <text x="530" y="259" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#2563eb">P₁ = <tspan id="dv_P1">—</tspan></text>
-              <text id="dv_SH_row" x="530" y="272" font-family="Inter,sans-serif" font-size="8.5" fill="#1d4ed8" display="none">SH=<tspan id="dv_SH" font-weight="700">—</tspan>K · Te=<tspan id="dv_Te" font-weight="700">—</tspan>°C</text>
-            </g>
-
-            <!-- Pt 2 (top-right) — values right side, top -->
-            <g id="dv2_group">
-              <text x="530" y="62" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#dc2626">T₂ = <tspan id="dv_T2">—</tspan> °C</text>
-              <text x="530" y="75" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#dc2626">P₂ = <tspan id="dv_P2">—</tspan></text>
-              <text id="dv_Tc_row" x="530" y="88" font-family="Inter,sans-serif" font-size="8.5" fill="#b91c1c" display="none">Tc = <tspan id="dv_Tc" font-weight="700">—</tspan> °C</text>
-            </g>
-
-            <!-- Pt 3 (top-left) — values left side -->
-            <g id="dv3_group">
-              <text x="130" y="62" text-anchor="end" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#059669">T₃ = <tspan id="dv_T3">—</tspan> °C</text>
-              <text id="dv_SC_row" x="130" y="75" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#047857" display="none">SC = <tspan id="dv_SC" font-weight="700">—</tspan> K</text>
-            </g>
-
-            <!-- Pt 4 (bot-left) — values left side, bottom -->
-            <g id="dv4_group">
-              <text x="130" y="246" text-anchor="end" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#7c3aed">T₄ = <tspan id="dv_T4">—</tspan></text>
-              <text x="130" y="259" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#8b5cf6">2-fázová oblasť</text>
-              <text id="dv_x4_row" x="130" y="272" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#7c3aed" display="none">x₄ = <tspan id="dv_x4" font-weight="700">—</tspan> %</text>
-            </g>
-
-            <!-- Caption -->
-            <text x="330" y="326" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="#b0bac8">Body 1–4 = merané miesta · hodnoty sa aktualizujú automaticky</text>
-          </svg>
-        </div>
-
-        <!-- Point input panels -->
-        <div class="pt-grid">
-          <!-- POINT 1 -->
-          <div class="pt-panel pt1">
-            <div class="pt-header">
-              <div class="pt-circle c1">1</div>
-              <div>
-                <div class="pt-name" data-i18n="pt1_name">Sanie kompresora</div>
-                <div class="pt-sub" data-i18n="pt1_sub">Výstup výparníka → vst. kompresora</div>
-              </div>
-            </div>
-            <div class="g2">
-              <div class="f">
-                <label id="lbl_T_suc">T₁ — Teplota sania [°C]</label>
-                <input type="number" id="T_suc" value="-5" step="0.5" placeholder="napr. -5">
-              </div>
-              <div class="f">
-                <label id="lbl_P_suc">P₁ — Tlak sania <span id="punit_lbl_suc">[bar(a)]</span></label>
-                <input type="number" id="P_suc" value="4.5" step="0.1" min="0.1" placeholder="napr. 4.5">
-              </div>
-            </div>
-          </div>
-
-          <!-- POINT 2 -->
-          <div class="pt-panel pt2">
-            <div class="pt-header">
-              <div class="pt-circle c2">2</div>
-              <div>
-                <div class="pt-name" data-i18n="pt2_name">Výtlak kompresora</div>
-                <div class="pt-sub" data-i18n="pt2_sub">Výstup kompresora → vstup kondenzátora</div>
-              </div>
-            </div>
-            <div class="g2">
-              <div class="f">
-                <label>T₂ — <span data-i18n="lbl_Tdisch">Teplota výtlaku</span> [°C]</label>
-                <input type="number" id="T_disch" value="75" step="0.5" placeholder="napr. 75">
-              </div>
-              <div class="f">
-                <label>P₂ — <span data-i18n="lbl_Pdisch">Tlak výtlaku</span> <span id="punit_lbl_disch">[bar(a)]</span></label>
-                <input type="number" id="P_disch" value="24.0" step="0.1" min="0.1" placeholder="napr. 24">
-              </div>
-            </div>
-          </div>
-
-          <!-- POINT 3 -->
-          <div class="pt-panel pt3">
-            <div class="pt-header">
-              <div class="pt-circle c3">3</div>
-              <div>
-                <div class="pt-name" data-i18n="pt3_name">Kvapalinová vetva</div>
-                <div class="pt-sub" data-i18n="pt3_sub">Výstup kondenzátora / pred exp. ventilom</div>
-              </div>
-            </div>
-            <div class="g2">
-              <div class="f">
-                <label>T₃ — <span data-i18n="lbl_Tliq">Teplota kvapaliny</span> [°C]</label>
-                <input type="number" id="T_liq" value="40" step="0.5" placeholder="napr. 40">
-              </div>
-              <div class="f">
-                <label style="color:#9aa3b8">P₃ ≈ P₂ (voliteľné) <span id="punit_lbl_3">[bar(a)]</span></label>
-                <input type="number" id="P_liq" value="" step="0.1" min="0.1" placeholder="ak iné ako P₂">
-              </div>
-            </div>
-          </div>
-
-          <!-- POINT 4 -->
-          <div class="pt-panel pt4">
-            <div class="pt-header">
-              <div class="pt-circle c4">4</div>
-              <div>
-                <div class="pt-name" data-i18n="pt4_name">Za expanzným ventilom</div>
-                <div class="pt-sub" data-i18n="pt4_sub">Vstup do výparníka (2-fázová oblasť)</div>
-              </div>
-            </div>
-            <div class="g2">
-              <div class="f">
-                <label>T₄ — <span data-i18n="lbl_T_evap_in">Teplota vstupu výparníka</span> [°C]</label>
-                <input type="number" id="T_evap_in" value="" step="0.5" placeholder="nepovinné">
-              </div>
-              <div class="f">
-                <label style="color:#9aa3b8">ΔT <span data-i18n="lbl_dt_check">kontrola</span> [°C]</label>
-                <input type="number" id="dt_check" value="" step="0.5" placeholder="nepovinné">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Additional measured values -->
-        <div class="sec-label gray" data-i18n="sec_additional">Ďalšie namerané hodnoty</div>
-        <div class="g3">
-          <div class="f">
-            <label data-i18n="lbl_Tamb">T amb — Okolitá teplota [°C]</label>
-            <input type="number" id="T_amb" value="25" step="0.5" placeholder="napr. 25">
-          </div>
-          <div class="f">
-            <label data-i18n="lbl_T_evap_surf">T povrch výparníka [°C]</label>
-            <input type="number" id="T_evap_surf" value="" step="0.5" placeholder="nepovinné">
-          </div>
-          <div class="f">
-            <label data-i18n="lbl_note">Poznámka</label>
-            <input type="text" id="note_field" placeholder="Stroj, zákazník, dátum...">
-          </div>
-        </div>
-
-        <!-- COOLING CAPACITY INPUTS -->
-        <div class="sec-label" style="color:#059669;margin-top:16px">Výpočet chladiaceho výkonu <span style="font-size:8px;color:#9aa3b8;text-transform:none;letter-spacing:0">(A = príkon/prúd, B = zdvihový objem)</span></div>
-
-        <!-- Method A: Electric power -->
-        <div style="background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:10px;padding:12px 14px;margin-bottom:8px">
-          <div style="font-size:9px;font-weight:700;color:#059669;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">⚡ A — Elektrický príkon</div>
-          <div class="g3">
-            <div class="f">
-              <label>I — Prúd [A]</label>
-              <input type="number" id="I_meas" value="" step="0.1" min="0" placeholder="napr. 10.5" oninput="calcPower()">
-            </div>
-            <div class="f">
-              <label>U — Napätie [V]</label>
-              <input type="number" id="U_meas" value="" step="1" min="0" placeholder="napr. 230" oninput="calcPower()">
-            </div>
-            <div class="f">
-              <label style="color:#059669;font-weight:800">P = I × U [W] <span style="font-size:8px;color:#9aa3b8;font-weight:400">(vypočíta sa automaticky)</span></label>
-              <input type="number" id="P_comp" value="" step="1" min="0" placeholder="alebo zadajte priamo" style="font-weight:700;color:#059669" title="Auto-calculated from I×U, or enter manually for 3-phase">
-            </div>
-          </div>
-          <div style="font-size:9px;color:#6b7280;margin-top:6px">
-            💡 <strong>1-fázové:</strong> P = I × U &nbsp;|&nbsp; <strong>3-fázové:</strong> P = I × U × √3 × cosφ → zadajte príkon priamo
-          </div>
-        </div>
-
-
-        <!-- Method C: Compressor displacement -->
-        <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:12px 14px;margin-bottom:8px">
-          <div style="font-size:9px;font-weight:700;color:#ea580c;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🔧 B — Zdvihový objem kompresora</div>
-          <div class="g4">
-            <div class="f">
-              <label>V<sub>h</sub> — Zdvihový objem [cm³]</label>
-              <input type="number" id="comp_vh" value="" step="0.1" min="0" placeholder="napr. 28.5">
-            </div>
-            <div class="f">
-              <label>n — Otáčky [RPM]</label>
-              <input type="number" id="comp_rpm" value="" step="50" min="0" placeholder="napr. 2900">
-            </div>
-            <div class="f">
-              <label>η<sub>vol</sub> — Obj. účinnosť [%]</label>
-              <input type="number" id="comp_etavol" value="75" step="1" min="1" max="100" placeholder="napr. 75">
-            </div>
-            <div class="f">
-              <label>Počet valcov / piestov</label>
-              <input type="number" id="comp_cyl" value="1" step="1" min="1" max="20" placeholder="1">
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3: Calculate -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-num orange">3</div>
-          <div class="card-title" data-i18n="card3_title">Výpočet a diagnostika</div>
-        </div>
-        <button class="calc-btn" id="calcBtn" onclick="calculateCycle()" disabled>
-          🧮 <span data-i18n="btn_calc">Vypočítať cyklus + diagnostika</span>
-        </button>
-        <button class="reset-btn" onclick="resetAll()" data-i18n="btn_reset">↺ Vymazať výsledky</button>
-      </div>
-
-    </div><!-- /LEFT -->
-
-    <!-- ── RIGHT COLUMN ── -->
-    <div>
-
-      <!-- Results card -->
-      <div class="card" id="resultsCard" style="display:none">
-        <div class="card-header">
-          <div class="card-num green">✓</div>
-          <div class="card-title" data-i18n="card_res_title">Výsledky — Stavové body</div>
-        </div>
-
-        <!-- KPI row -->
-        <div class="kpi-grid" id="kpiGrid"></div>
-
-        <!-- State points -->
-        <div class="sec-label" data-i18n="sec_statepoints">Stavové body cyklu</div>
-        <div class="res-state-grid" id="statePointsGrid"></div>
-
-        <!-- Derived values table -->
-        <div class="sec-label" data-i18n="sec_derived">Odvodené veličiny</div>
-        <table class="res-table" id="derivedTable">
-          <thead><tr>
-            <th data-i18n="th_param">Parameter</th>
-            <th data-i18n="th_value" style="text-align:right">Hodnota</th>
-            <th data-i18n="th_unit">Jedn.</th>
-            <th data-i18n="th_eval">Hodnotenie</th>
-          </tr></thead>
-          <tbody id="derivedBody"></tbody>
-        </table>
-
-      </div>
-
-      <!-- COOLING CAPACITY CARD – always shown after calc -->
-      <div class="card" id="capacityCard" style="display:none">
-        <div class="card-header">
-          <div class="card-num" style="background:linear-gradient(135deg,#059669,#047857)">❄</div>
-          <div class="card-title">Chladiaci výkon — Výsledky</div>
-          <div id="capMethodBadge" style="margin-left:auto;font-size:9px;font-weight:700;padding:3px 10px;border-radius:6px;background:#dcfce7;color:#14532d"></div>
-        </div>
-
-        <!-- Big KPI row -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px" id="capKpiGrid"></div>
-
-        <!-- Detail table -->
-        <table class="res-table" id="capTable">
-          <thead><tr>
-            <th>Parameter</th>
-            <th style="text-align:right">Hodnota</th>
-            <th>Jednotka</th>
-          </tr></thead>
-          <tbody id="capBody"></tbody>
-        </table>
-
-        <!-- Specific values always shown -->
-        <div class="sec-label" style="color:#6b7280">Mernoenergetické hodnoty (bez prietoku)</div>
-        <table class="res-table" id="specTable">
-          <thead><tr><th>Parameter</th><th style="text-align:right">Hodnota</th><th>Jednotka</th></tr></thead>
-          <tbody id="specBody"></tbody>
-        </table>
-      </div>
-
-      <!-- P-H Diagram card -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-num purple">P-H</div>
-          <div class="card-title" data-i18n="card_ph_title">P-H Diagram</div>
-          <div class="card-hint" id="phRefrigBadge" style="display:none"></div>
-        </div>
-        <div class="ph-wrap" id="phWrap">
-          <div class="ph-placeholder">
-            <div class="ph-icon">📊</div>
-            <p data-i18n="ph_placeholder">Zadajte namerané hodnoty a kliknite Vypočítať.<br>P-H diagram sa vygeneruje cez CoolProp.</p>
-          </div>
-        </div>
-        <div class="ph-legend" id="phLegend" style="display:none">
-          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#f97316"></div> <span data-i18n="leg_compression">1→2 Kompresia</span></div>
-          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#dc2626"></div> <span data-i18n="leg_condensation">2→3 Kondenzácia</span></div>
-          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#7c3aed"></div> <span data-i18n="leg_expansion">3→4 Expanzia</span></div>
-          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#2563eb"></div> <span data-i18n="leg_evaporation">4→1 Odparovanie</span></div>
-          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#93b4f0;border-top:1px dashed #2563eb;height:0"></div> <span data-i18n="leg_sat_dome">Sýtostná krivka</span></div>
-        </div>
-      </div>
-
-      <!-- Diagnostics card -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-num" style="background:linear-gradient(135deg,#ea580c,#c2410c)">🔍</div>
-          <div class="card-title" data-i18n="card_diag_title">Diagnostika — Pravdepodobné závady</div>
-          <div id="diagBadge" style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;display:none"></div>
-        </div>
-        <div id="diagOutput">
-          <div class="diag-empty">
-            <span>🔍</span>
-            <p data-i18n="diag_placeholder">Diagnostika sa zobrazí po výpočte cyklu.</p>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- /RIGHT -->
-  </div><!-- /main-layout -->
 </div><!-- /app -->
-
-<!-- ═══ HEADER EDITOR MODAL ═══ -->
-<div class="modal-overlay" id="headerModal" style="display:none" onclick="if(event.target===this)closeHeaderEditor()">
-  <div class="modal-box">
-    <div class="modal-head">
-      <div class="modal-head-icon">✏️</div>
-      <div class="modal-title" data-i18n="modal_hdr_title">Úprava hlavičky (Admin)</div>
-      <button class="modal-close" onclick="closeHeaderEditor()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:11px;color:#9aa3b8;margin-bottom:14px" data-i18n="modal_hdr_desc">Zmeny sa uplatnia okamžite v hlavičke aplikácie.</div>
-      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px">
-        <div id="logoPreview" class="logo-upload-area" onclick="document.getElementById('logoFileInput').click()">
-          <div class="lu-hint">📷<br>Kliknite pre<br>nahranie loga</div>
-        </div>
-        <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
-        <div style="flex:1">
-          <div class="f" style="margin-bottom:8px">
-            <label data-i18n="lbl_hdr_title">Názov aplikácie</label>
-            <input type="text" id="hdr_title">
-          </div>
-          <div class="f">
-            <label data-i18n="lbl_hdr_sub">Podnadpis</label>
-            <input type="text" id="hdr_sub">
-          </div>
-        </div>
-      </div>
-      <div class="f" style="margin-bottom:8px">
-        <label data-i18n="lbl_hdr_footer">Päta / Firma</label>
-        <input type="text" id="hdr_footer">
-      </div>
-      <div style="font-size:10px;color:#9aa3b8;margin-top:6px" data-i18n="lbl_logo_hint">Logo: PNG/JPG, min. 100×100 px odporúčané.</div>
-      <div style="margin-top:12px;display:flex;justify-content:flex-end">
-        <button onclick="clearLogo()" style="font-size:11px;padding:5px 12px;border:1.5px solid #e4e9f4;background:#fff;color:#7a8299;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif" data-i18n="btn_clear_logo">🗑 Odstrániť logo</button>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="cancel-btn" onclick="closeHeaderEditor()" data-i18n="btn_cancel">Zrušiť</button>
-      <button class="save-btn" onclick="saveHeader()" data-i18n="btn_save">✓ Uložiť</button>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ COOLPROP LOADER ═══ -->
 <script>
-// ═══════════════════════════════════════════════════════════════════
-//  CoolProp WASM — rovnaký loader ako v kalkulátore (overený na GitHub Pages)
-//  CoolProp v7.0.0 je ES Modul → dynamic import(), NIE <script src>
-//  makeInstantiateWasm() obchádza GitHub Pages MIME type problém pre .wasm
-// ═══════════════════════════════════════════════════════════════════
 let cpReady = false;
 var Module = {};
-
-function onCoolPropReady() {
-  document.getElementById('cpBadge').className = 'status-badge st-ok';
-  document.getElementById('cpBadge').innerHTML = '<span class="st-dot"></span>CoolProp ✓';
-  const bar = document.getElementById('cpInfoBar');
-  bar.className = 'info-ok';
-  bar.innerHTML = '<span>✅</span><span><strong>CoolProp WASM</strong> je načítaný a pripravený. Výpočty sú teraz k dispozícii.</span>';
-  document.getElementById('calcBtn').disabled = false;
+function onCoolPropReady(){
+  cpReady=true;
+  const b=document.getElementById('cpBadge');
+  b.className='tb-badge ok';
+  b.innerHTML='<span class="tb-dot"></span>CoolProp ✓';
 }
-
-function cpSuccess(instance) {
-  Module = instance;
-  cpReady = true;
-  console.log('[CoolProp] ✅ Ready | PropsSI:', typeof Module.PropsSI === 'function');
-  onCoolPropReady();
+function cpSuccess(inst){ Module=inst; cpReady=true; console.log('[CP] Ready'); onCoolPropReady(); }
+function cpFallback(r){
+  console.warn('[CP] Failed:',r);
+  const b=document.getElementById('cpBadge');
+  b.className='tb-badge err';
+  b.innerHTML='<span class="tb-dot"></span>CoolProp error';
 }
-
-function cpFallback(reason) {
-  console.warn('[CoolProp] Failed:', reason);
-  document.getElementById('cpBadge').className = 'status-badge st-warn';
-  document.getElementById('cpBadge').innerHTML = '<span class="st-dot"></span>CoolProp chyba';
-  const bar = document.getElementById('cpInfoBar');
-  bar.style.background = 'rgba(220,38,38,.08)';
-  bar.style.borderColor = 'rgba(220,38,38,.25)';
-  bar.innerHTML = '<span>❌</span><span><strong>CoolProp WASM sa nepodarilo načítať</strong> (' + reason + '). Uistite sa, že súbory <strong>coolprop.js</strong> a <strong>coolprop.wasm</strong> sú v rovnakom priečinku.</span>';
-}
-
-// Fetch WASM ako ArrayBuffer — obchádza GitHub Pages MIME type problém
-function makeInstantiateWasm() {
-  return function(imports, successCb) {
-    fetch('coolprop.wasm')
-      .then(function(r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.arrayBuffer();
-      })
-      .then(function(buf) { return WebAssembly.instantiate(buf, imports); })
-      .then(function(res) {
-        console.log('[CoolProp] ✅ WASM skompilovaný');
-        successCb(res.instance, res.module);
-      })
-      .catch(function(e) { console.error('[CoolProp] WASM chyba:', e); });
-    return {};
+function makeInstantiateWasm(){
+  return function(imports,cb){
+    fetch('coolprop.wasm').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer()})
+    .then(buf=>WebAssembly.instantiate(buf,imports))
+    .then(res=>{cb(res.instance,res.module);}).catch(e=>console.error('[CP] WASM err:',e));
+    return{};
   };
 }
-
-// CoolProp v7 = ES Modul → dynamic import()
-(function() {
-  import('./coolprop.js')
-    .then(function(mod) {
-      console.log('[CoolProp] ES modul načítaný');
-      var factory = (typeof mod.default === 'function') ? mod.default
-                  : (typeof mod === 'function') ? mod
-                  : null;
-      if (!factory) {
-        cpSuccess(mod.default || mod);
-        return;
-      }
-      return factory({
-        instantiateWasm: makeInstantiateWasm(),
-        onRuntimeInitialized: function() {},
-        print:    function(m) { console.log('[CP]', m); },
-        printErr: function(m) { console.warn('[CP]', m); }
-      });
-    })
-    .then(function(instance) {
-      if (instance) cpSuccess(instance);
-    })
-    .catch(function(err) {
-      console.warn('[CoolProp] ES import zlyhal:', err.message, '— skúšam classic script');
-      var s = document.createElement('script');
-      s.src = 'coolprop.js';
-      s.onerror = function() { cpFallback('coolprop.js sa nenašiel'); };
-      s.onload = function() {
-        console.log('[CoolProp] Classic script načítaný');
-        if (typeof Module !== 'undefined') {
-          var _orig = Module.onRuntimeInitialized;
-          Module.onRuntimeInitialized = function() {
-            if (_orig) _orig();
-            cpSuccess(Module);
-          };
-        }
-        setTimeout(function() {
-          if (!cpReady) cpFallback('WASM timeout (30s)');
-        }, 30000);
-      };
-      document.head.appendChild(s);
-    });
+(function(){
+  import('./coolprop.js').then(mod=>{
+    var factory=(typeof mod.default==='function')?mod.default:(typeof mod==='function')?mod:null;
+    if(!factory){cpSuccess(mod.default||mod);return;}
+    return factory({instantiateWasm:makeInstantiateWasm(),onRuntimeInitialized:function(){},print:m=>console.log('[CP]',m),printErr:m=>console.warn('[CP]',m)});
+  }).then(inst=>{if(inst)cpSuccess(inst);})
+  .catch(err=>{
+    console.warn('[CP] ES import failed:',err.message);
+    var s=document.createElement('script');s.src='coolprop.js';
+    s.onerror=()=>cpFallback('coolprop.js not found');
+    s.onload=()=>{if(typeof Module!=='undefined'){var _o=Module.onRuntimeInitialized;Module.onRuntimeInitialized=function(){if(_o)_o();cpSuccess(Module);};}setTimeout(()=>{if(!cpReady)cpFallback('WASM timeout');},30000);};
+    document.head.appendChild(s);
+  });
 })();
 </script>
 
-<!-- ═══ MAIN JAVASCRIPT ═══ -->
+<!-- ═══ MAIN APP ═══ -->
 <script>
-// ═══════════════════════════════════════════════════════════════════
-//  CONFIG & PINS
-// ═══════════════════════════════════════════════════════════════════
-const PIN_USER  = '2468';
-const PIN_ADMIN = '1357';
-let isAdmin = false;
-let activeLang = 'sk';
-
-// ═══════════════════════════════════════════════════════════════════
-//  TRANSLATIONS
-// ═══════════════════════════════════════════════════════════════════
-const TRANS = {
-  sk: {
-    pin_sub: 'Zadajte PIN pre prístup · v1.0',
-    card1_title: 'Chladivo a nastavenie',
-    card1_hint: 'Povinné nastavenie',
-    card2_title: 'Bloková schéma — namerané hodnoty',
-    card3_title: 'Výpočet a diagnostika',
-    card_res_title: 'Výsledky — Stavové body',
-    card_ph_title: 'P-H Diagram',
-    card_diag_title: 'Diagnostika — Pravdepodobné závady',
-    btn_calc: 'Vypočítať cyklus + diagnostika',
-    btn_reset: '↺ Vymazať výsledky',
-    lbl_refrigerant: 'Chladivo',
-    lbl_apptype: 'Typ aplikácie',
-    app_ac: 'Klimatizácia (AC)',
-    app_ref_med: 'Chladenie stredné (+5 až -15°C)',
-    app_ref_low: 'Chladenie nízke (-15 až -40°C)',
-    app_hp: 'Tepelné čerpadlo',
-    sec_pressure_unit: 'Jednotka tlaku',
-    pt1_name: 'Sanie kompresora',
-    pt1_sub: 'Výstup výparníka → vstup kompresora',
-    pt2_name: 'Výtlak kompresora',
-    pt2_sub: 'Výstup kompresora → vstup kondenzátora',
-    pt3_name: 'Kvapalinová vetva',
-    pt3_sub: 'Výstup kondenzátora / pred exp. ventilom',
-    pt4_name: 'Za expanzným ventilom',
-    pt4_sub: 'Vstup do výparníka (2-fázová oblasť)',
-    lbl_Tdisch: 'Teplota výtlaku',
-    lbl_Pdisch: 'Tlak výtlaku',
-    lbl_Tliq: 'Teplota kvapaliny',
-    sec_additional: 'Ďalšie namerané hodnoty',
-    lbl_Tamb: 'T amb — Okolitá teplota [°C]',
-    lbl_Pcomp: 'P₁ — Príkon kompresora [W]',
-    lbl_current: 'I — Prúd [A]',
-    lbl_voltage: 'U — Napätie [V]',
-    lbl_T_evap_surf: 'T povrch výparníka [°C]',
-    lbl_note: 'Poznámka',
-    lbl_T_evap_in: 'Teplota vstupu výparníka',
-    lbl_dt_check: 'kontrola',
-    sec_statepoints: 'Stavové body cyklu',
-    sec_derived: 'Odvodené veličiny',
-    sec_massflow: 'Prietok a výkony (príkon zadaný)',
-    th_param: 'Parameter',
-    th_value: 'Hodnota',
-    th_unit: 'Jedn.',
-    th_eval: 'Hodnotenie',
-    ph_placeholder: 'Zadajte namerané hodnoty a kliknite Vypočítať.\nP-H diagram sa vygeneruje cez CoolProp.',
-    diag_placeholder: 'Diagnostika sa zobrazí po výpočte cyklu.',
-    leg_compression: '1→2 Kompresia',
-    leg_condensation: '2→3 Kondenzácia',
-    leg_expansion: '3→4 Expanzia',
-    leg_evaporation: '4→1 Odparovanie',
-    leg_sat_dome: 'Sýtostná krivka',
-    modal_hdr_title: 'Úprava hlavičky (Admin)',
-    modal_hdr_desc: 'Zmeny sa uplatnia okamžite v hlavičke aplikácie.',
-    lbl_hdr_title: 'Názov aplikácie',
-    lbl_hdr_sub: 'Podnadpis',
-    lbl_hdr_footer: 'Päta / Firma',
-    lbl_logo_hint: 'Logo: PNG/JPG, min. 100×100 px odporúčané.',
-    btn_clear_logo: '🗑 Odstrániť logo',
-    btn_cancel: 'Zrušiť',
-    btn_save: '✓ Uložiť',
-    // Diagnostic messages
-    d_flood_name: 'Záplava kompresora (flood-back)',
-    d_flood_desc: 'Záporný alebo veľmi nízky prehriat — kvapalné chladivo vstupuje do kompresora. Hrozí mechanické poškodenie!',
-    d_lowsh_name: 'Veľmi nízky prehriat',
-    d_lowsh_desc: 'Prehriat pod 3 °C — riziko záplavy. Skontrolujte expanzný ventil.',
-    d_highsh_name: 'Vysoký prehriat',
-    d_highsh_desc: 'Prehriat nad 25 °C — nízky prietok chladiva, znížený výkon.',
-    d_flashgas_name: 'Flash-gas v kvapalinovej vetve',
-    d_flashgas_desc: 'Záporné podchladzenie — para v kvapalinovom potrubí. Expanzný ventil nefunguje správne.',
-    d_lowsc_name: 'Nízke podchladzenie',
-    d_lowsc_desc: 'Podchladzenie pod 2 °C naznačuje nedostatok chladiva alebo slabý výkon kondenzátora.',
-    d_highsc_name: 'Vysoké podchladzenie',
-    d_highsc_desc: 'Podchladzenie nad 15 °C — možné preplnenie chladivom.',
-    d_highdisch_name: 'Kriticky vysoká teplota výtlaku',
-    d_highdisch_desc: 'Teplota výtlaku nad 120 °C — nebezpečenstvo poškodenia kompresora a karbonizácia oleja!',
-    d_warndisch_name: 'Zvýšená teplota výtlaku',
-    d_warndisch_desc: 'Teplota výtlaku nad 100 °C — zvýšená teplota kompresorového oleja.',
-    d_highcr_name: 'Vysoký kompresný pomer',
-    d_highcr_desc: 'Kompresný pomer nad 8 — nízka objemová účinnosť, vysoká teplota výtlaku.',
-    d_lowcr_name: 'Nízky kompresný pomer',
-    d_lowcr_desc: 'Kompresný pomer pod 1,5 — možná porucha ventilov kompresora alebo chyba merania.',
-    d_loweta_name: 'Nízka izentropická účinnosť kompresora',
-    d_loweta_desc: 'Izentropická účinnosť pod 50 % — kompresor môže byť opotrebovaný.',
-    d_higheta_name: 'Chyba merania (η > 100 %)',
-    d_higheta_desc: 'Izentropická účinnosť nad 100 % — chyba v meraní teplôt alebo tlakov.',
-    d_highcond_name: 'Vysoká kondenzačná teplota',
-    d_highcond_desc: 'Kondenzačná teplota je príliš vysoko nad okolitou teplotou — znečistený kondenzátor alebo nedostatočný prietok vzduchu.',
-    d_pswap_name: 'Chyba merania — vymenené tlakomery',
-    d_pswap_desc: 'Tlak sania nesmie byť väčší alebo rovný tlaku výtlaku. Skontrolujte zapojenie tlakomerov!',
-    d_lowcop_name: 'Nízky COP',
-    d_lowcop_desc: 'Energetická účinnosť systému je nízka. Systém spotrebuje viac elektriny ako je potrebné.',
-    d_highx4_name: 'Vysoký podiel pary za expanziou',
-    d_highx4_desc: 'Veľký podiel pary za expanzným ventilom znižuje využiteľnosť výparníka.',
-    d_noncond_name: 'Možné nekondenzovateľné plyny',
-    d_noncond_desc: 'Kondenzačná teplota je výrazne vyššia ako by zodpovedala tlaku — možné vzduchové plyny v systéme.',
-    d_ok: 'Žiadne závažné závady nenájdené',
-    d_ok_desc: 'Systém pracuje v normálnych parametroch. Pokračujte v pravidelnom monitoringu.',
-    cause_lbl: 'Príčiny:',
-    action_lbl: 'Opatrenia:',
-  },
-  en: {
-    pin_sub: 'Enter PIN to access · v1.0',
-    card1_title: 'Refrigerant & Setup',
-    card1_hint: 'Required setup',
-    card2_title: 'Block Diagram — Measured Values',
-    card3_title: 'Calculation & Diagnostics',
-    card_res_title: 'Results — State Points',
-    card_ph_title: 'P-H Diagram',
-    card_diag_title: 'Diagnostics — Probable Faults',
-    btn_calc: 'Calculate Cycle + Diagnostics',
-    btn_reset: '↺ Clear Results',
-    lbl_refrigerant: 'Refrigerant',
-    lbl_apptype: 'Application Type',
-    app_ac: 'Air Conditioning (AC)',
-    app_ref_med: 'Medium refrigeration (+5 to -15°C)',
-    app_ref_low: 'Low refrigeration (-15 to -40°C)',
-    app_hp: 'Heat Pump',
-    sec_pressure_unit: 'Pressure Unit',
-    pt1_name: 'Compressor suction',
-    pt1_sub: 'Evaporator outlet → Compressor inlet',
-    pt2_name: 'Compressor discharge',
-    pt2_sub: 'Compressor outlet → Condenser inlet',
-    pt3_name: 'Liquid line',
-    pt3_sub: 'Condenser outlet / before expansion valve',
-    pt4_name: 'After expansion valve',
-    pt4_sub: 'Evaporator inlet (two-phase region)',
-    lbl_Tdisch: 'Discharge temperature',
-    lbl_Pdisch: 'Discharge pressure',
-    lbl_Tliq: 'Liquid temperature',
-    sec_additional: 'Additional measured values',
-    lbl_Tamb: 'T amb — Ambient temperature [°C]',
-    lbl_Pcomp: 'P₁ — Compressor power input [W]',
-    lbl_current: 'I — Current [A]',
-    lbl_voltage: 'U — Voltage [V]',
-    lbl_T_evap_surf: 'Evaporator surface temperature [°C]',
-    lbl_note: 'Note',
-    lbl_T_evap_in: 'Evaporator inlet temperature',
-    lbl_dt_check: 'check',
-    sec_statepoints: 'Cycle state points',
-    sec_derived: 'Derived values',
-    sec_massflow: 'Mass flow & capacities (power input provided)',
-    th_param: 'Parameter',
-    th_value: 'Value',
-    th_unit: 'Unit',
-    th_eval: 'Assessment',
-    ph_placeholder: 'Enter measured values and click Calculate.\nP-H diagram will be generated via CoolProp.',
-    diag_placeholder: 'Diagnostics will appear after cycle calculation.',
-    leg_compression: '1→2 Compression',
-    leg_condensation: '2→3 Condensation',
-    leg_expansion: '3→4 Expansion',
-    leg_evaporation: '4→1 Evaporation',
-    leg_sat_dome: 'Saturation curve',
-    modal_hdr_title: 'Edit Header (Admin)',
-    modal_hdr_desc: 'Changes apply immediately to the app header.',
-    lbl_hdr_title: 'Application title',
-    lbl_hdr_sub: 'Subtitle',
-    lbl_hdr_footer: 'Footer / Company',
-    lbl_logo_hint: 'Logo: PNG/JPG, min. 100×100 px recommended.',
-    btn_clear_logo: '🗑 Remove logo',
-    btn_cancel: 'Cancel',
-    btn_save: '✓ Save',
-    d_flood_name: 'Compressor flood-back',
-    d_flood_desc: 'Negative or very low superheat — liquid refrigerant entering compressor. Risk of mechanical damage!',
-    d_lowsh_name: 'Very low superheat',
-    d_lowsh_desc: 'Superheat below 3°C — flood-back risk. Check expansion valve.',
-    d_highsh_name: 'High superheat',
-    d_highsh_desc: 'Superheat above 25°C — low refrigerant flow, reduced capacity.',
-    d_flashgas_name: 'Flash gas in liquid line',
-    d_flashgas_desc: 'Negative subcooling — vapor in liquid line. Expansion valve will not work correctly.',
-    d_lowsc_name: 'Low subcooling',
-    d_lowsc_desc: 'Subcooling below 2°C indicates low refrigerant charge or poor condenser performance.',
-    d_highsc_name: 'High subcooling',
-    d_highsc_desc: 'Subcooling above 15°C — possible refrigerant overcharge.',
-    d_highdisch_name: 'Critically high discharge temperature',
-    d_highdisch_desc: 'Discharge temperature above 120°C — risk of compressor damage and oil carbonization!',
-    d_warndisch_name: 'Elevated discharge temperature',
-    d_warndisch_desc: 'Discharge temperature above 100°C — elevated compressor oil temperature.',
-    d_highcr_name: 'High compression ratio',
-    d_highcr_desc: 'Compression ratio above 8 — low volumetric efficiency, high discharge temperature.',
-    d_lowcr_name: 'Low compression ratio',
-    d_lowcr_desc: 'Compression ratio below 1.5 — possible compressor valve failure or measurement error.',
-    d_loweta_name: 'Low compressor isentropic efficiency',
-    d_loweta_desc: 'Isentropic efficiency below 50% — compressor may be worn.',
-    d_higheta_name: 'Measurement error (η > 100%)',
-    d_higheta_desc: 'Isentropic efficiency above 100% — error in temperature or pressure measurements.',
-    d_highcond_name: 'High condensing temperature',
-    d_highcond_desc: 'Condensing temperature is too far above ambient — dirty condenser or insufficient airflow.',
-    d_pswap_name: 'Measurement error — swapped pressure gauges',
-    d_pswap_desc: 'Suction pressure cannot be ≥ discharge pressure. Check pressure gauge connections!',
-    d_lowcop_name: 'Low COP',
-    d_lowcop_desc: 'System energy efficiency is low. More electricity consumed than necessary.',
-    d_highx4_name: 'High vapor quality after expansion',
-    d_highx4_desc: 'Large vapor fraction after expansion valve reduces evaporator utilization.',
-    d_noncond_name: 'Possible non-condensables',
-    d_noncond_desc: 'Condensing temperature significantly above what pressure would indicate — possible air/gas in system.',
-    d_ok: 'No serious faults found',
-    d_ok_desc: 'System is operating within normal parameters. Continue regular monitoring.',
-    cause_lbl: 'Causes:',
-    action_lbl: 'Actions:',
-  }
-};
-
-function t(key){ return (TRANS[activeLang]||TRANS.sk)[key] || TRANS.sk[key] || key; }
-
-function setLang(lang){
-  activeLang = lang;
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const key = el.getAttribute('data-i18n');
-    const val = t(key);
-    if(val) el.textContent = val;
-  });
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
-  const lb = document.getElementById('lb_'+lang);
-  if(lb) lb.classList.add('active');
-  document.getElementById('pinSubTxt').textContent = t('pin_sub');
-}
-
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════
 //  PIN
-// ═══════════════════════════════════════════════════════════════════
-let pinBuf = '';
-function pinPress(d){ if(pinBuf.length>=4) return; pinBuf+=d; dots(); if(pinBuf.length===4) checkPin(); }
-function pinBack(){ pinBuf=pinBuf.slice(0,-1); dots(); document.getElementById('pinErr').textContent=''; }
-function dots(){ for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled',i<pinBuf.length); }
+// ════════════════════════════════
+const PIN_USER='2468', PIN_ADMIN='1357';
+let pinBuf='', isAdmin=false;
+function pinPress(d){
+  if(pinBuf.length>=4)return;
+  pinBuf+=d;
+  for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinBuf.length);
+  if(pinBuf.length===4) setTimeout(checkPin,150);
+}
+function pinBack(){pinBuf=pinBuf.slice(0,-1);for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinBuf.length);}
 function checkPin(){
-  if(pinBuf === PIN_ADMIN){ isAdmin=true; unlockApp(); }
-  else if(pinBuf === PIN_USER){ isAdmin=false; unlockApp(); }
-  else {
-    document.getElementById('pinErr').textContent = activeLang==='sk' ? 'Nesprávny PIN. Skúste znova.' : 'Wrong PIN. Try again.';
-    pinBuf=''; setTimeout(()=>{ dots(); },600);
+  if(pinBuf===PIN_ADMIN){isAdmin=true;unlockApp();}
+  else if(pinBuf===PIN_USER){isAdmin=false;unlockApp();}
+  else{document.getElementById('pinErr').textContent='Incorrect PIN';pinBuf='';for(let i=0;i<4;i++)document.getElementById('d'+i).classList.remove('filled');}
+}
+function unlockApp(){document.getElementById('pinScreen').style.display='none';document.getElementById('appMain').style.display='flex';renderStep(1);}
+
+// ════════════════════════════════
+//  COMPONENT DATABASE
+// ════════════════════════════════
+const COMP_DB = [
+  // Scroll — R410A
+  {id:'ZP24K5E',brand:'Copeland',model:'ZP24K5E',type:'Scroll',refs:['R410A'],disp_cm3:24.6,rpm:3500,eta_is:0.73,eta_vol:0.86,W_nom:1800,T_disch_max:135,note:'Hermetic scroll, AC/HP'},
+  {id:'ZP36K5E',brand:'Copeland',model:'ZP36K5E',type:'Scroll',refs:['R410A'],disp_cm3:36.0,rpm:3500,eta_is:0.74,eta_vol:0.87,W_nom:2700,T_disch_max:135,note:'Hermetic scroll, AC/HP'},
+  {id:'ZP54K5E',brand:'Copeland',model:'ZP54K5E',type:'Scroll',refs:['R410A'],disp_cm3:54.1,rpm:3500,eta_is:0.74,eta_vol:0.87,W_nom:4100,T_disch_max:135,note:'Hermetic scroll, large AC'},
+  {id:'SH090',brand:'Danfoss',model:'SH090',type:'Scroll',refs:['R410A'],disp_cm3:9.0,rpm:2900,eta_is:0.72,eta_vol:0.85,W_nom:700,T_disch_max:130,note:'Performer scroll, compact'},
+  {id:'SH190',brand:'Danfoss',model:'SH190',type:'Scroll',refs:['R410A'],disp_cm3:19.0,rpm:2900,eta_is:0.73,eta_vol:0.86,W_nom:1500,T_disch_max:130,note:'Performer scroll'},
+  // Scroll — R404A
+  {id:'ZB15KCE',brand:'Copeland',model:'ZB15KCE',type:'Scroll',refs:['R404A','R507A'],disp_cm3:15.2,rpm:2900,eta_is:0.71,eta_vol:0.84,W_nom:1100,T_disch_max:130,note:'Commercial refrig.'},
+  {id:'ZB26KCE',brand:'Copeland',model:'ZB26KCE',type:'Scroll',refs:['R404A','R507A'],disp_cm3:26.1,rpm:2900,eta_is:0.72,eta_vol:0.85,W_nom:1900,T_disch_max:130,note:'Commercial refrig.'},
+  {id:'ZB38KCE',brand:'Copeland',model:'ZB38KCE',type:'Scroll',refs:['R404A','R507A'],disp_cm3:37.5,rpm:2900,eta_is:0.73,eta_vol:0.86,W_nom:2900,T_disch_max:130,note:'Commercial refrig.'},
+  // Reciprocating — R134a
+  {id:'4FES3',brand:'Bitzer',model:'4FES-3',type:'Reciprocating',refs:['R134a','R404A'],disp_cm3:15.6,rpm:1450,eta_is:0.68,eta_vol:0.82,W_nom:2200,T_disch_max:130,note:'Semi-hermetic 4-cyl'},
+  {id:'4FES5',brand:'Bitzer',model:'4FES-5',type:'Reciprocating',refs:['R134a','R404A'],disp_cm3:26.1,rpm:1450,eta_is:0.70,eta_vol:0.83,W_nom:3700,T_disch_max:130,note:'Semi-hermetic 4-cyl'},
+  {id:'6FE50',brand:'Bitzer',model:'6FE-50',type:'Reciprocating',refs:['R134a','R404A'],disp_cm3:49.6,rpm:1450,eta_is:0.71,eta_vol:0.84,W_nom:7200,T_disch_max:130,note:'Semi-hermetic 6-cyl'},
+  // Reciprocating — R32
+  {id:'DLM024',brand:'Daikin',model:'DLM024',type:'Scroll',refs:['R32'],disp_cm3:22.4,rpm:3000,eta_is:0.73,eta_vol:0.86,W_nom:1700,T_disch_max:120,note:'Hermetic scroll, R32 HP'},
+  // Small hermetic — R290
+  {id:'NE6187',brand:'Embraco',model:'NE6187GS',type:'Reciprocating',refs:['R290','R600a'],disp_cm3:6.3,rpm:1500,eta_is:0.65,eta_vol:0.80,W_nom:250,T_disch_max:120,note:'Hermetic, household/light comm.'},
+  // NH3
+  {id:'V6F',brand:'GEA Grasso',model:'V6F',type:'Reciprocating',refs:['R717'],disp_cm3:120.0,rpm:1450,eta_is:0.75,eta_vol:0.85,W_nom:15000,T_disch_max:140,note:'Semi-hermetic, industrial NH3'},
+  // CO2
+  {id:'4DTC6',brand:'Bitzer',model:'4DTC-6K',type:'Reciprocating',refs:['R744'],disp_cm3:20.2,rpm:1450,eta_is:0.72,eta_vol:0.83,W_nom:4500,T_disch_max:150,note:'CO₂ semi-hermetic, subcritical'},
+];
+
+const EVAP_DB = [
+  {id:'GEA_SQ20',brand:'GEA',model:'SQ-20 Air Cooler',type:'air_cooler',Q_nom_kW:20,airflow_m3h:2800,UA_kWK:2.8,dT_approach:6,note:'Low-profile unit cooler'},
+  {id:'GEA_SQ35',brand:'GEA',model:'SQ-35 Air Cooler',type:'air_cooler',Q_nom_kW:35,airflow_m3h:4800,UA_kWK:4.5,dT_approach:6,note:'Standard unit cooler'},
+  {id:'GEA_SQ60',brand:'GEA',model:'SQ-60 Air Cooler',type:'air_cooler',Q_nom_kW:60,airflow_m3h:7800,UA_kWK:7.5,dT_approach:7,note:'Large unit cooler'},
+  {id:'APV_R5M',brand:'APV',model:'R5-M Plate HX',type:'plate_hx',Q_nom_kW:20,UA_kWK:8.0,dT_approach:3,note:'Brazed plate HX, liquid cooling'},
+  {id:'APV_R10M',brand:'APV',model:'R10-M Plate HX',type:'plate_hx',Q_nom_kW:40,UA_kWK:14.0,dT_approach:3,note:'Brazed plate HX, industrial'},
+  {id:'custom',brand:'Custom',model:'Custom HX',type:'custom',Q_nom_kW:0,UA_kWK:0,dT_approach:5,note:'Manual entry'},
+];
+
+const COND_DB = [
+  {id:'AlfaNova_76',brand:'Alfa Laval',model:'AlfaNova 76',type:'plate_hx',Q_nom_kW:50,UA_kWK:12.0,dT_approach:4,note:'Brazed plate HX, water-cooled cond.'},
+  {id:'AAON_AC50',brand:'AAON',model:'V3-050 Air Cond.',type:'air_cooled',Q_nom_kW:50,UA_kWK:5.5,dT_approach:10,note:'Air-cooled condenser unit'},
+  {id:'AAON_AC100',brand:'AAON',model:'V3-100 Air Cond.',type:'air_cooled',Q_nom_kW:100,UA_kWK:10.0,dT_approach:10,note:'Large air-cooled condenser'},
+  {id:'GEA_FP40',brand:'GEA',model:'FP-40 V-type',type:'air_cooled',Q_nom_kW:40,UA_kWK:4.5,dT_approach:9,note:'V-type air-cooled condenser'},
+  {id:'GEA_FP80',brand:'GEA',model:'FP-80 V-type',type:'air_cooled',Q_nom_kW:80,UA_kWK:8.5,dT_approach:9,note:'Large V-type condenser'},
+  {id:'custom_cond',brand:'Custom',model:'Custom Condenser',type:'custom',Q_nom_kW:0,UA_kWK:0,dT_approach:8,note:'Manual entry'},
+];
+
+// ════════════════════════════════
+//  STATE
+// ════════════════════════════════
+let currentStep=1;
+let selectedComp=null;
+let selectedEvap=null;
+let selectedCond=null;
+let calcResults=null;
+
+const REFRIGERANTS=['R410A','R134a','R32','R407C','R22','R290','R600a','R717','R404A','R448A','R449A','R744'];
+
+// ════════════════════════════════
+//  WIZARD NAVIGATION
+// ════════════════════════════════
+function goStep(n){
+  currentStep=n;
+  renderStep(n);
+  updateSidebar();
+  updateNavButtons();
+  updateSummary();
+}
+function nextStep(){if(currentStep<8)goStep(currentStep+1);}
+function prevStep(){if(currentStep>1)goStep(currentStep-1);}
+function updateSidebar(){
+  for(let i=1;i<=8;i++){
+    const el=document.getElementById('ss'+i);
+    el.classList.toggle('active',i===currentStep);
   }
 }
-function unlockApp(){
-  document.getElementById('pinScreen').style.display='none';
-  document.getElementById('appMain').style.display='block';
-  if(isAdmin){
-    document.getElementById('adminBadge').style.display='inline-flex';
-  }
+function updateNavButtons(){
+  document.getElementById('btnPrev').style.display=currentStep===1?'none':'inline-flex';
+  document.getElementById('btnNext').style.display=currentStep===8?'none':'inline-flex';
+  document.getElementById('btnCalc').style.display=currentStep===7||currentStep===8?'inline-flex':'none';
+  document.getElementById('stepCounter').textContent=`Step ${currentStep} of 8`;
+}
+function updateSummary(){
+  const ref=g('ref_sel');
+  document.getElementById('sum_ref').textContent=ref?ref.value:'—';
+  const st=g('sys_type');
+  document.getElementById('sum_type').textContent=st?st.value:'—';
+  const te=g('Te_sat'),tc=g('Tc_sat');
+  document.getElementById('sum_temps').textContent=(te&&tc&&te.value&&tc.value)?`${te.value}°C / ${tc.value}°C`:'—';
+  document.getElementById('sum_comp').textContent=selectedComp?selectedComp.model:'—';
+  const qr=g('Q_req');
+  document.getElementById('sum_qreq').textContent=(qr&&qr.value)?`${qr.value} kW`:'—';
+}
+function g(id){return document.getElementById(id);}
+
+// ════════════════════════════════
+//  STEP RENDERERS
+// ════════════════════════════════
+function renderStep(n){
+  const fn=[null,renderStep1,renderStep2,renderStep3,renderStep4,renderStep5,renderStep6,renderStep7,renderStep8];
+  fn[n]&&fn[n]();
+  document.querySelector('.content').scrollTop=0;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  THERMO HELPERS (uses CoolProp Module)
-// ═══════════════════════════════════════════════════════════════════
-function cpProp(out, in1, v1, in2, v2, fluid){
-  return Module.PropsSI(out, in1, v1, in2, v2, fluid);
+function renderStep1(){
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-blue">🏗</div>
+    <div><div class="step-title">Project Setup</div><div class="step-desc">Basic project information, system type and refrigerant selection</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Project Information</div>
+    <div class="g2">
+      <div class="f"><label>Project Name</label><input id="proj_name" placeholder="e.g. Cold Storage Unit A" oninput="updateProjTitle()"></div>
+      <div class="f"><label>Customer / Object</label><input id="proj_customer" placeholder="Customer name or location"></div>
+    </div>
+    <div class="g2" style="margin-top:10px">
+      <div class="f"><label>Designed by</label><input id="proj_designer" placeholder="Engineer name"></div>
+      <div class="f"><label>Date</label><input type="date" id="proj_date" value="${new Date().toISOString().split('T')[0]}"></div>
+    </div>
+    <div class="f" style="margin-top:10px"><label>Notes</label><textarea id="proj_notes" rows="2" placeholder="Additional notes about the project..."></textarea></div>
+  </div>
+  <div class="card">
+    <div class="card-title">System Type</div>
+    <div class="radio-group" id="sysTypeGroup">
+      <div class="radio-opt selected" onclick="selectSysType(this,'Single-stage')"><input type="radio" name="sys_type" id="sys_type" value="Single-stage" checked><span class="radio-label">❄ Single-stage</span></div>
+      <div class="radio-opt" onclick="selectSysType(this,'2-stage')"><input type="radio" name="sys_type" value="2-stage"><span class="radio-label">🔄 2-Stage</span></div>
+      <div class="radio-opt" onclick="selectSysType(this,'Heat pump')"><input type="radio" name="sys_type" value="Heat pump"><span class="radio-label">🔥 Heat Pump</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Refrigerant & Units</div>
+    <div class="g3">
+      <div class="f"><label>Refrigerant</label>
+        <select id="ref_sel" onchange="updateSummary()">
+          ${REFRIGERANTS.map(r=>`<option value="${r}">${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="f"><label>Pressure Unit</label>
+        <select id="punit_sel">
+          <option value="bara">bar(a) — absolute</option>
+          <option value="barg">bar(g) — gauge</option>
+        </select>
+      </div>
+      <div class="f"><label>Temperature Unit</label>
+        <select id="tunit_sel">
+          <option value="C">°C — Celsius</option>
+          <option value="K">K — Kelvin</option>
+        </select>
+      </div>
+    </div>
+  </div>`;
+  // Restore values if any
+  if(window._s1){['proj_name','proj_customer','proj_designer','proj_date','proj_notes','ref_sel','punit_sel','tunit_sel'].forEach(id=>{const el=g(id);if(el&&window._s1[id])el.value=window._s1[id];});}
+}
+function selectSysType(el,val){
+  document.querySelectorAll('.radio-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked=true;
+  updateSummary();
+}
+function updateProjTitle(){
+  const n=g('proj_name');
+  if(n&&n.value) document.getElementById('tb_proj_name').textContent=n.value+' — AES System Designer';
 }
 
-function satP_from_T(T_C, fluid){
-  return cpProp('P','T',T_C+273.15,'Q',0,fluid) / 1e5; // bar(a)
+function renderStep2(){
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-teal">🌡</div>
+    <div><div class="step-title">Design Conditions</div><div class="step-desc">Thermodynamic operating conditions and required cooling capacity</div></div>
+  </div>
+  <div class="info-box">ℹ️ <span>Enter the <strong>saturation temperatures</strong> at evaporator and condenser. The tool will calculate all cycle points, state properties and verify component capacities.</span></div>
+  <div class="card">
+    <div class="card-title green">Evaporator Side</div>
+    <div class="g3">
+      <div class="f"><label>Te — Evaporating Temperature [°C]</label><input type="number" id="Te_sat" value="-10" step="1" oninput="updateSummary()"></div>
+      <div class="f"><label>SH — Superheat at Compressor Inlet [K]</label><input type="number" id="SH_val" value="8" step="0.5" min="0"></div>
+      <div class="f"><label>T_cold — Cold Space / Inlet Air Temp [°C]</label><input type="number" id="T_cold" value="2" step="1"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title orange">Condenser Side</div>
+    <div class="g3">
+      <div class="f"><label>Tc — Condensing Temperature [°C]</label><input type="number" id="Tc_sat" value="40" step="1" oninput="updateSummary()"></div>
+      <div class="f"><label>SC — Subcooling at Condenser Outlet [K]</label><input type="number" id="SC_val" value="5" step="0.5" min="0"></div>
+      <div class="f"><label>T_amb — Ambient Temperature [°C]</label><input type="number" id="T_amb" value="25" step="1"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Required Capacity & Load Profile</div>
+    <div class="g3">
+      <div class="f"><label>Q̇ required — Cooling Capacity [kW]</label><input type="number" id="Q_req" value="" step="0.1" min="0" placeholder="e.g. 15.0" oninput="updateSummary()"></div>
+      <div class="f"><label>Safety Factor [%]</label><input type="number" id="safety_factor" value="10" step="5" min="0" max="50"></div>
+      <div class="f"><label>Operating Hours per Year [h]</label><input type="number" id="op_hours" value="4000" step="100" min="0"></div>
+    </div>
+    <div class="sec-label gray">Pressure Ratio Check</div>
+    <div class="g2">
+      <div class="f"><label>Min. allowed SH [K] — flood-back limit</label><input type="number" id="SH_min" value="3" step="0.5" min="0"></div>
+      <div class="f"><label>Max. discharge temperature [°C]</label><input type="number" id="T_disch_max" value="120" step="5"></div>
+    </div>
+  </div>`;
+  if(window._s2){['Te_sat','Tc_sat','SH_val','SC_val','T_amb','T_cold','Q_req','safety_factor','op_hours','SH_min','T_disch_max'].forEach(id=>{const el=g(id);if(el&&window._s2[id]!==undefined)el.value=window._s2[id];});}
 }
 
-function T_from_satP(P_bar, fluid){
-  return cpProp('T','P',P_bar*1e5,'Q',0,fluid) - 273.15; // °C
+function renderStep3(){
+  const curRef=g('ref_sel')?g('ref_sel').value:'R410A';
+  const filtered=COMP_DB.filter(c=>c.refs.includes(curRef));
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-blue">🔧</div>
+    <div><div class="step-title">Compressor</div><div class="step-desc">Select from database or enter custom compressor parameters</div></div>
+  </div>
+  <div class="db-panel">
+    <div class="db-header">
+      <div class="db-title">Component Database — Compressors</div>
+      <button class="db-import-btn" onclick="importCompressor()">📂 Import JSON</button>
+    </div>
+    <div class="db-filter">
+      <button class="db-filter-btn active" onclick="filterComp(this,'all')">All</button>
+      <button class="db-filter-btn" onclick="filterComp(this,'Scroll')">Scroll</button>
+      <button class="db-filter-btn" onclick="filterComp(this,'Reciprocating')">Reciprocating</button>
+    </div>
+    <div class="db-grid" id="compGrid">
+      ${COMP_DB.map(c=>renderCompCard(c,curRef)).join('')}
+    </div>
+  </div>
+  <div class="card" id="compManualCard">
+    <div class="card-title" style="justify-content:space-between">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:3px;height:14px;background:#2563eb;border-radius:2px"></span>Compressor Parameters</span>
+      <span style="font-size:10px;color:#9aa3b8">${selectedComp?`Selected: ${selectedComp.brand} ${selectedComp.model}`:'Manual entry'}</span>
+    </div>
+    <div class="g4">
+      <div class="f"><label>Brand</label><input id="c_brand" placeholder="e.g. Copeland" value="${selectedComp?selectedComp.brand:''}"></div>
+      <div class="f"><label>Model</label><input id="c_model" placeholder="e.g. ZB26KCE" value="${selectedComp?selectedComp.model:''}"></div>
+      <div class="f"><label>Type</label><input id="c_type" placeholder="Scroll / Reciprocating" value="${selectedComp?selectedComp.type:''}"></div>
+      <div class="f"><label>Compatible Refrigerants</label><input id="c_refs" placeholder="e.g. R410A, R404A" value="${selectedComp?selectedComp.refs.join(', '):''}"></div>
+    </div>
+    <div class="sec-label">Technical Specifications</div>
+    <div class="g4">
+      <div class="f"><label>Displacement [cm³/rev]</label><input type="number" id="c_disp" step="0.1" min="0.1" value="${selectedComp?selectedComp.disp_cm3:''}"></div>
+      <div class="f"><label>Speed [RPM]</label><input type="number" id="c_rpm" step="50" min="100" value="${selectedComp?selectedComp.rpm:''}"></div>
+      <div class="f"><label>η_is — Isentropic Eff. [0–1]</label><input type="number" id="c_eta_is" step="0.01" min="0.1" max="1" value="${selectedComp?selectedComp.eta_is:''}"></div>
+      <div class="f"><label>η_vol — Volumetric Eff. [0–1]</label><input type="number" id="c_eta_vol" step="0.01" min="0.1" max="1" value="${selectedComp?selectedComp.eta_vol:''}"></div>
+    </div>
+    <div class="g4" style="margin-top:10px">
+      <div class="f"><label>Motor Efficiency η_mot [0–1]</label><input type="number" id="c_eta_mot" step="0.01" min="0.5" max="1" value="0.92"></div>
+      <div class="f"><label>Nominal Power W [W]</label><input type="number" id="c_wnom" step="100" min="100" value="${selectedComp?selectedComp.W_nom:''}"></div>
+      <div class="f"><label>Max Discharge T [°C]</label><input type="number" id="c_tdmax" step="1" value="${selectedComp?selectedComp.T_disch_max:130}"></div>
+      <div class="f"><label>Oil Type</label><input id="c_oil" placeholder="POE 68, PAO..." value="POE 68"></div>
+    </div>
+  </div>`;
 }
-
-function enthalpy(P_bar, T_C, fluid, phase){
-  // Returns kJ/kg
-  if(phase === 'liquid'){
-    return cpProp('H','T',T_C+273.15,'Q',0,fluid)/1000;
-  } else {
-    return cpProp('H','P',P_bar*1e5,'T',T_C+273.15,fluid)/1000;
-  }
+function renderCompCard(c,refFilter){
+  const compat=c.refs.includes(refFilter);
+  const sel=selectedComp&&selectedComp.id===c.id;
+  return `<div class="db-card ${sel?'selected':''} ${compat?'':'opacity-50'}" id="cc_${c.id}" onclick="selectComp('${c.id}')">
+    <div class="db-card-brand">${c.brand} · ${c.type}</div>
+    <div class="db-card-model">${c.model}</div>
+    <div class="db-card-specs">${c.disp_cm3} cm³ · ${c.rpm} RPM<br>η_is ${(c.eta_is*100).toFixed(0)}% · η_vol ${(c.eta_vol*100).toFixed(0)}%<br>~${(c.W_nom/1000).toFixed(1)} kW motor</div>
+    ${c.refs.map(r=>`<span class="db-card-ref">${r}</span>`).join('')}
+  </div>`;
 }
-
-function entropy(P_bar, T_C, fluid){
-  return cpProp('S','P',P_bar*1e5,'T',T_C+273.15,fluid)/1000; // kJ/(kg·K)
+function selectComp(id){
+  selectedComp=COMP_DB.find(c=>c.id===id)||null;
+  renderStep3();
+  updateSummary();
 }
-
-function enthalpy_from_PS(P_bar, S_kJkgK, fluid){
-  return cpProp('H','P',P_bar*1e5,'S',S_kJkgK*1000,fluid)/1000;
+function filterComp(btn,type){
+  document.querySelectorAll('.db-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const curRef=g('ref_sel')?g('ref_sel').value:'R410A';
+  const grid=document.getElementById('compGrid');
+  if(grid) grid.innerHTML=COMP_DB.filter(c=>type==='all'||c.type===type).map(c=>renderCompCard(c,curRef)).join('');
 }
-
-function density(P_bar, T_C, fluid){
-  return cpProp('D','P',P_bar*1e5,'T',T_C+273.15,fluid); // kg/m³
-}
-
-function gaugeToAbs(val){ return val + 1.01325; }
-
-// ═══════════════════════════════════════════════════════════════════
-//  PRESSURE UNIT HANDLING
-// ═══════════════════════════════════════════════════════════════════
-function getPUnit(){ return document.querySelector('input[name="punit"]:checked').value; }
-
-function getAbsP(inputId){
-  const val = parseFloat(document.getElementById(inputId).value);
-  if(isNaN(val)) return NaN;
-  return getPUnit() === 'barg' ? gaugeToAbs(val) : val;
-}
-
-function updatePressureLabels(){
-  const u = getPUnit() === 'bara' ? 'bar(a)' : 'bar(g)';
-  ['suc','disch','3'].forEach(id=>{
-    const el = document.getElementById('punit_lbl_'+id);
-    if(el) el.textContent = '['+u+']';
-  });
-}
-
-function onRefrigChange(){ satDomeCache = {}; }
-
-// ═══════════════════════════════════════════════════════════════════
-//  MAIN CALCULATION
-// ═══════════════════════════════════════════════════════════════════
-let lastResult = null;
-let satDomeCache = {};
-
-function calculateCycle(){
-  if(!cpReady){ alert(activeLang==='sk'?'CoolProp sa ešte načítava, čakajte...':'CoolProp is still loading, please wait...'); return; }
-
-  const fluid = document.getElementById('refrigerantSel').value;
-
-  // Get inputs
-  const T1  = parseFloat(document.getElementById('T_suc').value);
-  const P1  = getAbsP('P_suc');
-  const T2  = parseFloat(document.getElementById('T_disch').value);
-  const P2  = getAbsP('P_disch');
-  const T3  = parseFloat(document.getElementById('T_liq').value);
-  const P3v = document.getElementById('P_liq').value.trim();
-  const P3  = P3v ? (getPUnit()==='barg' ? gaugeToAbs(parseFloat(P3v)) : parseFloat(P3v)) : P2;
-  const T_amb = parseFloat(document.getElementById('T_amb').value);
-  const P_comp = parseFloat(document.getElementById('P_comp').value) || null;
-  const I_meas = parseFloat(document.getElementById('I_meas').value) || null;
-  const U_meas = parseFloat(document.getElementById('U_meas').value) || null;
-  const comp_vh     = parseFloat(document.getElementById('comp_vh').value) || null;     // cm³
-  const comp_rpm    = parseFloat(document.getElementById('comp_rpm').value) || null;
-  const comp_etavol = parseFloat(document.getElementById('comp_etavol').value) || 75;
-  const comp_cyl    = parseFloat(document.getElementById('comp_cyl').value) || 1;
-
-  if([T1,P1,T2,P2,T3].some(isNaN)){
-    alert(activeLang==='sk'?'Vyplňte body 1, 2 a 3 (T a P).':'Fill in points 1, 2 and 3 (T and P).');
-    return;
-  }
-  if(P1 <= 0 || P2 <= 0){ alert('Tlaky musia byť kladné!'); return; }
-
-  try {
-    // Saturation temperatures
-    const Te_sat = T_from_satP(P1, fluid); // evaporating temp
-    const Tc_sat = T_from_satP(P2, fluid); // condensing temp
-
-    // State point 1: superheated vapor at suction
-    const h1 = enthalpy(P1, T1, fluid, 'vapor');
-    const s1 = entropy(P1, T1, fluid);
-    const rho1 = density(P1, T1, fluid);
-
-    // State point 2: superheated vapor at discharge
-    const h2 = enthalpy(P2, T2, fluid, 'vapor');
-
-    // State point 2s: isentropic discharge
-    const h2s = enthalpy_from_PS(P2, s1, fluid);
-
-    // State point 3: subcooled liquid
-    const h3 = enthalpy(P3, T3, fluid, 'liquid');
-
-    // State point 4: isenthalpic expansion
-    const h4 = h3;
-
-    // Vapor quality at point 4
-    const h4L = cpProp('H','P',P1*1e5,'Q',0,fluid)/1000;
-    const h4V = cpProp('H','P',P1*1e5,'Q',1,fluid)/1000;
-    const x4  = Math.max(0, Math.min(1, (h4 - h4L)/(h4V - h4L)));
-
-    // Derived cycle parameters
-    const SH  = T1 - Te_sat;       // superheat at compressor inlet [K]
-    const SC  = Tc_sat - T3;       // subcooling [K]
-    const CR  = P2 / P1;           // compression ratio
-    const q0  = h1 - h4;          // specific cooling effect [kJ/kg]
-    const w   = h2 - h1;          // specific compressor work [kJ/kg]
-    const qc  = h2 - h3;          // specific condenser heat rejection [kJ/kg]
-    const COP = q0 / w;
-    const eta_is = (h2s - h1) / (h2 - h1);
-
-    // ── Resolve mass flow from whichever method is provided ──
-    let mdot=null, Q_evap=null, Q_cond=null, COP_real=null, P_elec_used=null;
-    let capMethod = null;
-
-    // Method A: direct power input
-    if(P_comp && P_comp > 0 && w > 0){
-      mdot      = P_comp / (w * 1000);       // kg/s
-      P_elec_used = P_comp;
-      capMethod = 'A — Príkon: ' + P_comp.toFixed(0) + ' W';
-    }
-    // Method A2: I × U
-    else if(I_meas && U_meas && I_meas > 0 && U_meas > 0 && w > 0){
-      P_elec_used = I_meas * U_meas;
-      mdot      = P_elec_used / (w * 1000);
-      capMethod = 'A — I×U: ' + I_meas.toFixed(1) + 'A × ' + U_meas.toFixed(0) + 'V = ' + P_elec_used.toFixed(0) + ' W';
-    }
-    // Method B: compressor displacement
-    else if(comp_vh && comp_rpm && rho1 > 0 && w > 0){
-      const Vhm3 = comp_vh * 1e-6 * comp_cyl;       // m³/rev total
-      const n_rps = comp_rpm / 60;                    // rev/s
-      mdot      = Vhm3 * n_rps * (comp_etavol/100) * rho1; // kg/s
-      capMethod = 'B — Zdvihový objem: ' + (comp_vh*comp_cyl).toFixed(1) + ' cm³ × ' + comp_rpm + ' RPM × η=' + comp_etavol + '%';
-    }
-
-    if(mdot && mdot > 0 && q0 > 0){
-      Q_evap   = mdot * q0 * 1000;   // W
-      Q_cond   = mdot * qc * 1000;   // W
-      if(P_elec_used) COP_real = Q_evap / P_elec_used;
-    }
-
-    lastResult = {
-      fluid, T1, P1, T2, P2, T3, P3, T_amb,
-      P_comp, I_meas, U_meas,
-      h1, s1, rho1, h2, h2s, h3, h4,
-      Te_sat, Tc_sat, x4,
-      SH, SC, CR, q0, w, qc, COP, eta_is,
-      mdot, Q_evap, Q_cond, COP_real, P_elec_used, capMethod
+function importCompressor(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        // Support array or single object
+        const obj=Array.isArray(d)?d[0]:d;
+        const comp={
+          id:'import_'+Date.now(),
+          brand:obj.brand||obj.manufacturer||'Imported',
+          model:obj.model||obj.name||'Custom',
+          type:obj.type||obj.compressor_type||'Custom',
+          refs:(obj.refrigerants||obj.compatible_refrigerants||[obj.refrigerant]).filter(Boolean),
+          disp_cm3:parseFloat(obj.displacement_cm3_rev||obj.displacement_cm3||obj.displacement||0),
+          rpm:parseFloat(obj.speed_rpm||obj.rpm||1450),
+          eta_is:parseFloat(obj.eta_isentropic||obj.efficiency_isentropic||0.70),
+          eta_vol:parseFloat(obj.eta_volumetric||obj.efficiency_volumetric||0.82),
+          W_nom:parseFloat(obj.power_W||obj.nominal_power_W||0),
+          T_disch_max:parseFloat(obj.max_discharge_temp_C||130),
+          note:'Imported from file'
+        };
+        COMP_DB.unshift(comp);
+        selectedComp=comp;
+        renderStep3();
+        alert(`✅ Compressor imported: ${comp.brand} ${comp.model}`);
+      }catch(ex){alert('❌ JSON parse error: '+ex.message);}
     };
-
-    displayResults(lastResult);
-    displayCapacity(lastResult);
-    updateDiagramCalc(lastResult);
-    drawPHDiagram(lastResult);
-    runDiagnostics(lastResult);
-    document.getElementById('resultsCard').style.display='block';
-    document.getElementById('capacityCard').style.display='block';
-
-  } catch(e){
-    console.error('[AES] Chyba:', e);
-    const stackLines = e.stack ? e.stack.split('\n').slice(0,5).join(' | ') : '';
-    alert('Chyba výpočtu: ' + e.message + '\n\nStack: ' + stackLines);
-  }
+    r.readAsText(f);
+  };
+  inp.click();
 }
 
-function resetAll(){
-  lastResult = null;
-  document.getElementById('resultsCard').style.display='none';
-  document.getElementById('phWrap').innerHTML=`<div class="ph-placeholder"><div class="ph-icon">📊</div><p>${t('ph_placeholder')}</p></div>`;
-  document.getElementById('phLegend').style.display='none';
-  document.getElementById('phRefrigBadge').style.display='none';
-  document.getElementById('diagOutput').innerHTML=`<div class="diag-empty"><span>🔍</span><p>${t('diag_placeholder')}</p></div>`;
-  document.getElementById('diagBadge').style.display='none';
-  document.getElementById('capacityCard').style.display='none';
-  resetDiagramCalc();
+function renderStep4(){
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-green">❄</div>
+    <div><div class="step-title">Evaporator</div><div class="step-desc">Select evaporator from database or enter heat exchanger parameters manually</div></div>
+  </div>
+  <div class="db-panel">
+    <div class="db-header">
+      <div class="db-title">Component Database — Evaporators</div>
+      <button class="db-import-btn" onclick="importHX('evap')">📂 Import JSON</button>
+    </div>
+    <div class="db-grid" id="evapGrid">
+      ${EVAP_DB.map(e=>renderHXCard(e,'evap')).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title green" style="justify-content:space-between">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:3px;height:14px;background:#059669;border-radius:2px"></span>Evaporator Parameters</span>
+      <span style="font-size:10px;color:#9aa3b8">${selectedEvap?`Selected: ${selectedEvap.brand} ${selectedEvap.model}`:'Manual entry'}</span>
+    </div>
+    <div class="g3">
+      <div class="f"><label>Type</label>
+        <select id="ev_type" onchange="renderEvapTypeFields()">
+          <option value="air_cooler">Air cooler (DX)</option>
+          <option value="plate_hx">Brazed plate HX</option>
+          <option value="shell_tube">Shell & tube</option>
+          <option value="flooded">Flooded evaporator</option>
+        </select>
+      </div>
+      <div class="f"><label>Nominal Capacity [kW]</label><input type="number" id="ev_Q_nom" step="0.5" min="0" placeholder="e.g. 20.0" value="${selectedEvap?selectedEvap.Q_nom_kW:''}"></div>
+      <div class="f"><label>UA value [kW/K]</label><input type="number" id="ev_UA" step="0.1" min="0" placeholder="Overall UA" value="${selectedEvap?selectedEvap.UA_kWK:''}"></div>
+    </div>
+    <div class="g3" style="margin-top:10px">
+      <div class="f"><label>Approach Temperature ΔT [K]</label><input type="number" id="ev_dT" step="0.5" min="0.5" value="${selectedEvap?selectedEvap.dT_approach:6}"></div>
+      <div class="f"><label>Defrost Type</label>
+        <select id="ev_defrost">
+          <option value="none">None</option>
+          <option value="electric">Electric</option>
+          <option value="hot_gas">Hot gas</option>
+          <option value="air">Air defrost</option>
+        </select>
+      </div>
+      <div class="f"><label>Defrost Interval [h]</label><input type="number" id="ev_defrost_int" step="1" min="1" value="8"></div>
+    </div>
+    <div class="sec-label green">Air-Cooler Specifics (if applicable)</div>
+    <div class="g3">
+      <div class="f"><label>Airflow [m³/h]</label><input type="number" id="ev_airflow" step="100" min="0" placeholder="e.g. 3600"></div>
+      <div class="f"><label>Fin Pitch [mm]</label><input type="number" id="ev_fin_pitch" step="0.5" min="1" value="4.5"></div>
+      <div class="f"><label>Number of Fans</label><input type="number" id="ev_fans" step="1" min="1" value="2"></div>
+    </div>
+  </div>`;
+  if(selectedEvap){['ev_type','ev_Q_nom','ev_UA','ev_dT'].forEach(id=>{const el=g(id);if(el&&selectedEvap[id.replace('ev_','')!==undefined?id.replace('ev_',''):'']){}});}
+}
+function renderHXCard(hx,mode){
+  const db=mode==='evap'?selectedEvap:selectedCond;
+  const sel=db&&db.id===hx.id;
+  const typeLabel={'air_cooler':'🌬 Air Cooler','plate_hx':'⬡ Plate HX','shell_tube':'🏭 Shell & Tube','custom':'✏ Custom'}[hx.type]||hx.type;
+  return `<div class="db-card ${sel?'selected':''}" id="hx_${mode}_${hx.id}" onclick="selectHX('${mode}','${hx.id}')">
+    <div class="db-card-brand">${hx.brand} · ${typeLabel}</div>
+    <div class="db-card-model">${hx.model}</div>
+    <div class="db-card-specs">${hx.Q_nom_kW>0?`Q: ${hx.Q_nom_kW} kW · `:''}UA: ${hx.UA_kWK} kW/K<br>ΔT approach: ${hx.dT_approach} K</div>
+  </div>`;
+}
+function selectHX(mode,id){
+  const db=mode==='evap'?EVAP_DB:COND_DB;
+  const item=db.find(h=>h.id===id);
+  if(mode==='evap'){selectedEvap=item;renderStep4();}
+  else{selectedCond=item;renderStep5();}
+}
+function importHX(mode){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.json';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const obj=JSON.parse(ev.target.result);
+        const d=Array.isArray(obj)?obj[0]:obj;
+        const hx={
+          id:'import_hx_'+Date.now(),
+          brand:d.brand||d.manufacturer||'Imported',
+          model:d.model||d.name||'Custom HX',
+          type:d.type||d.hx_type||'custom',
+          Q_nom_kW:parseFloat(d.capacity_kW||d.Q_nom_kW||0),
+          UA_kWK:parseFloat(d.UA_kWK||d.overall_UA_kWK||0),
+          dT_approach:parseFloat(d.approach_temp_K||d.dT_approach||5),
+          note:'Imported'
+        };
+        if(mode==='evap'){EVAP_DB.unshift(hx);selectedEvap=hx;renderStep4();}
+        else{COND_DB.unshift(hx);selectedCond=hx;renderStep5();}
+        alert(`✅ ${mode==='evap'?'Evaporator':'Condenser'} imported: ${hx.brand} ${hx.model}`);
+      }catch(ex){alert('❌ JSON parse error: '+ex.message);}
+    };
+    r.readAsText(f);
+  };
+  inp.click();
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  DISPLAY RESULTS
-// ═══════════════════════════════════════════════════════════════════
-function displayResults(r){
-  // Safety: check critical elements exist
-  const _kg = document.getElementById('kpiGrid');
-  const _sg = document.getElementById('statePointsGrid');
-  const _db = document.getElementById('derivedBody');
-  if(!_kg || !_sg || !_db){
-    console.error('[AES] displayResults: missing elements', {kpiGrid:!!_kg, statePointsGrid:!!_sg, derivedBody:!!_db});
+function renderStep5(){
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-orange">🔥</div>
+    <div><div class="step-title">Condenser</div><div class="step-desc">Select condenser from database or enter parameters manually</div></div>
+  </div>
+  <div class="db-panel">
+    <div class="db-header">
+      <div class="db-title">Component Database — Condensers</div>
+      <button class="db-import-btn" onclick="importHX('cond')">📂 Import JSON</button>
+    </div>
+    <div class="db-grid" id="condGrid">
+      ${COND_DB.map(c=>renderHXCard(c,'cond')).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title orange" style="justify-content:space-between">
+      <span style="display:flex;align-items:center;gap:8px"><span style="width:3px;height:14px;background:#ea580c;border-radius:2px"></span>Condenser Parameters</span>
+      <span style="font-size:10px;color:#9aa3b8">${selectedCond?`Selected: ${selectedCond.brand} ${selectedCond.model}`:'Manual entry'}</span>
+    </div>
+    <div class="g3">
+      <div class="f"><label>Type</label>
+        <select id="co_type">
+          <option value="air_cooled">Air-cooled</option>
+          <option value="water_cooled">Water-cooled</option>
+          <option value="evaporative">Evaporative</option>
+        </select>
+      </div>
+      <div class="f"><label>Nominal Capacity [kW]</label><input type="number" id="co_Q_nom" step="0.5" min="0" placeholder="e.g. 60.0" value="${selectedCond?selectedCond.Q_nom_kW:''}"></div>
+      <div class="f"><label>UA value [kW/K]</label><input type="number" id="co_UA" step="0.1" min="0" placeholder="Overall UA" value="${selectedCond?selectedCond.UA_kWK:''}"></div>
+    </div>
+    <div class="g3" style="margin-top:10px">
+      <div class="f"><label>Approach Temperature ΔT [K]</label><input type="number" id="co_dT" step="0.5" min="1" value="${selectedCond?selectedCond.dT_approach:9}"></div>
+      <div class="f"><label>Number of Fans</label><input type="number" id="co_fans" step="1" min="0" value="2"></div>
+      <div class="f"><label>Fan Power Total [W]</label><input type="number" id="co_fan_power" step="50" min="0" value="750"></div>
+    </div>
+    <div class="sec-label orange">Water-Cooled Specifics (if applicable)</div>
+    <div class="g3">
+      <div class="f"><label>Water inlet temperature [°C]</label><input type="number" id="co_Tw_in" step="0.5" value="25"></div>
+      <div class="f"><label>Water outlet temperature [°C]</label><input type="number" id="co_Tw_out" step="0.5" value="30"></div>
+      <div class="f"><label>Water flow rate [m³/h]</label><input type="number" id="co_Vw" step="0.1" min="0" placeholder="optional"></div>
+    </div>
+  </div>`;
+}
+
+function renderStep6(){
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-purple">🔑</div>
+    <div><div class="step-title">Expansion Device</div><div class="step-desc">Select expansion valve type and configure control setpoints</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title purple">Expansion Valve Type</div>
+    <div class="radio-group" id="expTypeGroup">
+      <div class="radio-opt selected" onclick="selectExpType(this,'TEV')"><input type="radio" name="exp_type" value="TEV" checked><span class="radio-label">🔧 TEV — Thermostatic</span></div>
+      <div class="radio-opt" onclick="selectExpType(this,'EEV')"><input type="radio" name="exp_type" value="EEV"><span class="radio-label">⚡ EEV — Electronic</span></div>
+      <div class="radio-opt" onclick="selectExpType(this,'Capillary')"><input type="radio" name="exp_type" value="Capillary"><span class="radio-label">〰 Capillary Tube</span></div>
+      <div class="radio-opt" onclick="selectExpType(this,'Float')"><input type="radio" name="exp_type" value="Float"><span class="radio-label">🎈 Float Valve</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title purple">Valve Parameters</div>
+    <div class="g3">
+      <div class="f"><label>Manufacturer</label><input id="xv_brand" placeholder="Danfoss, Sporlan..."></div>
+      <div class="f"><label>Model / Type</label><input id="xv_model" placeholder="TES 12, EX 5..."></div>
+      <div class="f"><label>Nominal Capacity [kW]</label><input type="number" id="xv_Q_nom" step="0.5" min="0" placeholder="e.g. 18.0"></div>
+    </div>
+    <div class="g3" style="margin-top:10px">
+      <div class="f"><label>Kv value [m³/h]</label><input type="number" id="xv_Kv" step="0.01" min="0" placeholder="optional"></div>
+      <div class="f"><label>SH setpoint [K] (TEV/EEV)</label><input type="number" id="xv_SH_set" step="0.5" value="6"></div>
+      <div class="f"><label>MOP setting [°C] (if TEV)</label><input type="number" id="xv_MOP" step="1" placeholder="optional"></div>
+    </div>
+    <div class="sec-label gray">Capillary Tube (if applicable)</div>
+    <div class="g3">
+      <div class="f"><label>Capillary length [m]</label><input type="number" id="cap_len" step="0.1" min="0.1" placeholder="e.g. 1.5"></div>
+      <div class="f"><label>Capillary inner diameter [mm]</label><input type="number" id="cap_dia" step="0.1" min="0.3" placeholder="e.g. 1.2"></div>
+      <div class="f"><label>Flash gas expected [%]</label><input type="number" id="cap_flash" step="1" min="0" max="30" placeholder="0–30%"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Control Strategy</div>
+    <div class="g2">
+      <div class="f"><label>Control type</label>
+        <select id="ctrl_type">
+          <option value="on_off">On/Off thermostat</option>
+          <option value="pid">PID controller</option>
+          <option value="inverter">Inverter (VFD) compressor</option>
+          <option value="multi_stage">Multi-stage (unloading)</option>
+        </select>
+      </div>
+      <div class="f"><label>Refrigerant safety class</label>
+        <select id="ref_safety">
+          <option value="A1">A1 — Low toxicity, non-flammable</option>
+          <option value="A2L">A2L — Low toxicity, mildly flammable</option>
+          <option value="A3">A3 — Low toxicity, flammable</option>
+          <option value="B2L">B2L — Toxic, mildly flammable</option>
+        </select>
+      </div>
+    </div>
+  </div>`;
+}
+function selectExpType(el,val){
+  document.querySelectorAll('#expTypeGroup .radio-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');el.querySelector('input').checked=true;
+}
+
+function renderStep7(){
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-gray">🔩</div>
+    <div><div class="step-title">Piping</div><div class="step-desc">Enter pipe lengths and diameters — the tool will calculate velocities and pressure drops</div></div>
+  </div>
+  <div class="info-box">ℹ️ <span>Leave diameter at <strong>0 for auto-sizing</strong> based on recommended velocities. Enter actual pipe length including all fittings equivalent length.</span></div>
+  <div style="display:grid;gap:12px">
+    <div class="pipe-panel pipe-suc card" style="border-radius:10px">
+      <div class="pipe-head"><div class="pipe-circle pc-suc">S</div><div><div class="pipe-name">Suction Line — Point 1 (Evaporator outlet → Compressor inlet)</div><div class="pipe-sub">Superheated vapor · Low pressure</div></div></div>
+      <div class="g4">
+        <div class="f"><label>Length [m]</label><input type="number" id="ps_len" step="0.5" min="0.5" value="5" placeholder="e.g. 5.0"></div>
+        <div class="f"><label>Nominal Ø [mm] (0=auto)</label><input type="number" id="ps_dia" step="1" min="0" value="0" placeholder="0 = auto"></div>
+        <div class="f"><label>Eq. length fittings [m]</label><input type="number" id="ps_fit" step="0.5" min="0" value="2" placeholder="elbows, valves..."></div>
+        <div class="f"><label>Insulation</label>
+          <select id="ps_ins"><option value="yes">Yes (foam 19mm)</option><option value="no">No</option></select>
+        </div>
+      </div>
+      <div class="vel-rec">Recommended velocity: <strong>5–15 m/s</strong> · Max. pressure drop ΔP equiv.: <strong>≤ 1°C sat. temp. loss</strong></div>
+    </div>
+    <div class="pipe-panel pipe-dis card" style="border-radius:10px">
+      <div class="pipe-head"><div class="pipe-circle pc-dis">D</div><div><div class="pipe-name">Discharge Line — Point 2 (Compressor outlet → Condenser inlet)</div><div class="pipe-sub">Superheated vapor · High pressure · Hot!</div></div></div>
+      <div class="g4">
+        <div class="f"><label>Length [m]</label><input type="number" id="pd_len" step="0.5" min="0.5" value="3" placeholder="e.g. 3.0"></div>
+        <div class="f"><label>Nominal Ø [mm] (0=auto)</label><input type="number" id="pd_dia" step="1" min="0" value="0" placeholder="0 = auto"></div>
+        <div class="f"><label>Eq. length fittings [m]</label><input type="number" id="pd_fit" step="0.5" min="0" value="1.5"></div>
+        <div class="f"><label>Oil separator</label>
+          <select id="pd_oil_sep"><option value="no">No</option><option value="yes">Yes</option></select>
+        </div>
+      </div>
+      <div class="vel-rec">Recommended velocity: <strong>10–20 m/s</strong> · Min. velocity for oil return: <strong>≥ 8 m/s</strong></div>
+    </div>
+    <div class="pipe-panel pipe-liq card" style="border-radius:10px">
+      <div class="pipe-head"><div class="pipe-circle pc-liq">L</div><div><div class="pipe-name">Liquid Line — Point 3 (Condenser outlet → Expansion valve)</div><div class="pipe-sub">Subcooled liquid · High pressure</div></div></div>
+      <div class="g4">
+        <div class="f"><label>Length [m]</label><input type="number" id="pl_len" step="0.5" min="0.5" value="4" placeholder="e.g. 4.0"></div>
+        <div class="f"><label>Nominal Ø [mm] (0=auto)</label><input type="number" id="pl_dia" step="1" min="0" value="0" placeholder="0 = auto"></div>
+        <div class="f"><label>Eq. length fittings [m]</label><input type="number" id="pl_fit" step="0.5" min="0" value="1.5"></div>
+        <div class="f"><label>Liquid receiver</label>
+          <select id="pl_receiver"><option value="yes">Yes</option><option value="no">No</option></select>
+        </div>
+      </div>
+      <div class="vel-rec">Recommended velocity: <strong>0.5–1.5 m/s</strong> · Avoid flash gas: SC must be &gt; 0 at valve inlet</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">Additional Piping Details</div>
+    <div class="g3">
+      <div class="f"><label>Pipe Material</label>
+        <select id="pipe_mat">
+          <option value="copper">Copper (smooth)</option>
+          <option value="steel">Steel (galvanized)</option>
+          <option value="stainless">Stainless steel</option>
+        </select>
+      </div>
+      <div class="f"><label>Vertical lift — suction [m]</label><input type="number" id="p_vert_suc" step="0.5" value="0" placeholder="0 if horizontal"></div>
+      <div class="f"><label>Vertical drop — discharge [m]</label><input type="number" id="p_vert_dis" step="0.5" value="0" placeholder="0 if horizontal"></div>
+    </div>
+  </div>`;
+}
+
+function renderStep8(){
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header">
+    <div class="step-icon-big si-gold">📊</div>
+    <div><div class="step-title">Results & Validation</div><div class="step-desc">Calculated cycle performance, P-H diagram and component validation report</div></div>
+  </div>
+  ${calcResults?renderResults():renderNoResults()}`;
+}
+function renderNoResults(){
+  return `<div class="card" style="text-align:center;padding:60px 30px">
+    <div style="font-size:48px;margin-bottom:16px">🧮</div>
+    <div style="font-size:15px;font-weight:700;color:#0d1f3c;margin-bottom:8px">No results yet</div>
+    <div style="font-size:12px;color:#9aa3b8;margin-bottom:24px">Complete all steps and click <strong>Calculate Cycle</strong> to generate results, P-H diagram and validation report.</div>
+    <button class="btn-calc" onclick="runCalculation()" style="display:inline-flex;margin:0 auto">🧮 Calculate Cycle</button>
+  </div>`;
+}
+function renderResults(){
+  const r=calcResults;
+  const pFmt=v=>v?v.toFixed(2):'—';
+  const hFmt=v=>v?v.toFixed(1):'—';
+  const tFmt=v=>v!==undefined&&!isNaN(v)?v.toFixed(1):'—';
+  return `
+  <div class="kpi-row">
+    <div class="kpi hl-green"><div class="kpi-lbl">Cooling Capacity</div><div class="kpi-val">${r.Q_evap.toFixed(1)}<span class="kpi-u">kW</span></div></div>
+    <div class="kpi hl-orange"><div class="kpi-lbl">Compressor Power</div><div class="kpi-val">${r.W_comp.toFixed(1)}<span class="kpi-u">kW</span></div></div>
+    <div class="kpi hl-blue"><div class="kpi-lbl">COP</div><div class="kpi-val">${r.COP.toFixed(2)}</div></div>
+    <div class="kpi hl-red"><div class="kpi-lbl">Condenser Heat</div><div class="kpi-val">${r.Q_cond.toFixed(1)}<span class="kpi-u">kW</span></div></div>
+  </div>
+  <div class="res-2col">
+    <div>
+      <div class="card-title">P-H Diagram — ${r.refrigerant}</div>
+      <div class="ph-wrap"><canvas id="phCanvas" width="560" height="360"></canvas></div>
+      <div class="ph-legend">
+        <div class="ph-leg-item"><div class="ph-leg-dot" style="background:#f97316"></div><span>1→2 Compression</span></div>
+        <div class="ph-leg-item"><div class="ph-leg-dot" style="background:#dc2626"></div><span>2→3 Condensation</span></div>
+        <div class="ph-leg-item"><div class="ph-leg-dot" style="background:#7c3aed"></div><span>3→4 Expansion</span></div>
+        <div class="ph-leg-item"><div class="ph-leg-dot" style="background:#2563eb"></div><span>4→1 Evaporation</span></div>
+        <div class="ph-leg-item"><div class="ph-leg-line" style="background:#475569;border-top:2px dashed #475569;height:0;width:22px"></div><span>Sat. dome</span></div>
+      </div>
+      <div class="card-title" style="margin-top:16px">Cycle State Points</div>
+      <div class="state-grid">
+        <div class="state-pt sp1"><div class="sp-num">Point 1 — Compressor Suction</div>
+          <div class="sp-row"><span>Temperature</span><span class="sp-val">${tFmt(r.T1)} °C</span></div>
+          <div class="sp-row"><span>Pressure</span><span class="sp-val">${pFmt(r.P_evap)} bar(a)</span></div>
+          <div class="sp-row"><span>Enthalpy</span><span class="sp-val">${hFmt(r.h1)} kJ/kg</span></div>
+          <div class="sp-row"><span>Superheat</span><span class="sp-val">${tFmt(r.SH)} K</span></div>
+        </div>
+        <div class="state-pt sp2"><div class="sp-num">Point 2 — Compressor Discharge</div>
+          <div class="sp-row"><span>Temperature</span><span class="sp-val">${tFmt(r.T2)} °C</span></div>
+          <div class="sp-row"><span>Pressure</span><span class="sp-val">${pFmt(r.P_cond)} bar(a)</span></div>
+          <div class="sp-row"><span>Enthalpy</span><span class="sp-val">${hFmt(r.h2)} kJ/kg</span></div>
+          <div class="sp-row"><span>η_is actual</span><span class="sp-val">${(r.eta_is*100).toFixed(1)} %</span></div>
+        </div>
+        <div class="state-pt sp3"><div class="sp-num">Point 3 — Condenser Outlet</div>
+          <div class="sp-row"><span>Temperature</span><span class="sp-val">${tFmt(r.T3)} °C</span></div>
+          <div class="sp-row"><span>Pressure</span><span class="sp-val">${pFmt(r.P_cond)} bar(a)</span></div>
+          <div class="sp-row"><span>Enthalpy</span><span class="sp-val">${hFmt(r.h3)} kJ/kg</span></div>
+          <div class="sp-row"><span>Subcooling</span><span class="sp-val">${tFmt(r.SC)} K</span></div>
+        </div>
+        <div class="state-pt sp4"><div class="sp-num">Point 4 — Evaporator Inlet</div>
+          <div class="sp-row"><span>Temperature</span><span class="sp-val">${tFmt(r.T4)} °C</span></div>
+          <div class="sp-row"><span>Pressure</span><span class="sp-val">${pFmt(r.P_evap)} bar(a)</span></div>
+          <div class="sp-row"><span>Enthalpy</span><span class="sp-val">${hFmt(r.h4)} kJ/kg</span></div>
+          <div class="sp-row"><span>Vapor quality x</span><span class="sp-val">${r.x4!==undefined?(r.x4*100).toFixed(1)+' %':'—'}</span></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card-title">Performance Summary</div>
+      <table class="res-table">
+        <thead><tr><th>Parameter</th><th style="text-align:right">Value</th><th>Unit</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Mass flow rate ṁ</td><td class="num">${r.m_dot.toFixed(3)}</td><td class="unit">kg/s</td><td></td></tr>
+          <tr><td>Compression ratio π</td><td class="num">${r.pi.toFixed(2)}</td><td class="unit">—</td><td>${badgePI(r.pi)}</td></tr>
+          <tr><td>Isentropic efficiency η_is</td><td class="num">${(r.eta_is*100).toFixed(1)}</td><td class="unit">%</td><td></td></tr>
+          <tr><td>Volumetric efficiency η_vol</td><td class="num">${(r.eta_vol*100).toFixed(1)}</td><td class="unit">%</td><td></td></tr>
+          <tr class="${r.Q_evap>=(r.Q_req||0)?'row-ok':'row-warn'}"><td>Cooling capacity Q̇_evap</td><td class="num">${r.Q_evap.toFixed(2)}</td><td class="unit">kW</td><td>${r.Q_req?badgeQ(r.Q_evap,r.Q_req):''}</td></tr>
+          <tr><td>Condenser heat Q̇_cond</td><td class="num">${r.Q_cond.toFixed(2)}</td><td class="unit">kW</td><td></td></tr>
+          <tr><td>Compressor power Ẇ</td><td class="num">${r.W_comp.toFixed(2)}</td><td class="unit">kW</td><td></td></tr>
+          <tr><td>COP</td><td class="num">${r.COP.toFixed(3)}</td><td class="unit">—</td><td>${badgeCOP(r.COP)}</td></tr>
+          <tr><td>EER</td><td class="num">${(r.COP*3.412).toFixed(2)}</td><td class="unit">BTU/Wh</td><td></td></tr>
+          <tr class="${r.T2>120?'row-crit':r.T2>100?'row-warn':'row-ok'}"><td>Discharge temperature T₂</td><td class="num">${tFmt(r.T2)}</td><td class="unit">°C</td><td>${badgeTdisch(r.T2)}</td></tr>
+        </tbody>
+      </table>
+      <div class="card-title" style="margin-top:16px">Pipe Sizing</div>
+      <table class="res-table">
+        <thead><tr><th>Line</th><th style="text-align:right">Ø rec.</th><th style="text-align:right">Velocity</th><th style="text-align:right">ΔP</th><th>Status</th></tr></thead>
+        <tbody>
+          ${r.pipes.map(p=>`<tr class="${p.ok?'row-ok':'row-warn'}">
+            <td>${p.name}</td>
+            <td class="num">${p.D_rec_mm.toFixed(1)} <span style="font-size:9px;color:#9aa3b8">mm</span></td>
+            <td class="num">${p.vel.toFixed(1)} <span style="font-size:9px;color:#9aa3b8">m/s</span></td>
+            <td class="num">${p.dP_kPa.toFixed(1)} <span style="font-size:9px;color:#9aa3b8">kPa</span></td>
+            <td>${p.ok?'<span class="badge badge-ok">✓ OK</span>':'<span class="badge badge-warn">⚠ Check</span>'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="card-title" style="margin-top:16px">Component Validation</div>
+      <div id="valList">
+        ${r.validation.map(v=>`<div class="val-item ${v.sev==='ok'?'val-ok':v.sev==='warn'?'val-warn':'val-crit'}">
+          <div class="val-icon">${v.sev==='ok'?'✅':v.sev==='warn'?'⚠️':'❌'}</div>
+          <div><div class="val-name">${v.name}</div><div class="val-desc">${v.desc}</div></div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+function badgePI(pi){if(pi<2)return'<span class="badge badge-warn">Low π</span>';if(pi>10)return'<span class="badge badge-crit">High π</span>';return'<span class="badge badge-ok">OK</span>';}
+function badgeCOP(cop){if(cop<1.5)return'<span class="badge badge-crit">Low COP</span>';if(cop<2.5)return'<span class="badge badge-warn">Moderate</span>';return'<span class="badge badge-ok">Good</span>';}
+function badgeTdisch(t){if(t>120)return'<span class="badge badge-crit">Critical</span>';if(t>100)return'<span class="badge badge-warn">High</span>';return'<span class="badge badge-ok">OK</span>';}
+function badgeQ(q,req){if(q>=req)return'<span class="badge badge-ok">✓ Meets load</span>';return'<span class="badge badge-crit">Undersized!</span>';}
+
+// ════════════════════════════════
+//  CALCULATION ENGINE
+// ════════════════════════════════
+async function runCalculation(){
+  if(!cpReady){
+    alert('⚠️ CoolProp is not ready yet. Please wait for the WASM to load, or ensure coolprop.js and coolprop.wasm are in the same folder.');
     return;
   }
-  // KPIs
-  const kpis = [
-    {lbl:'COP', val:r.COP.toFixed(2), u:'W/W', cls:'hl-green'},
-    {lbl:'Kompr. pomer', val:r.CR.toFixed(2), u:':1', cls:''},
-    {lbl:'η izentrop.', val:(r.eta_is*100).toFixed(1), u:'%', cls: r.eta_is>0.6?'hl-blue':'hl-orange'},
-    {lbl:'Prehriat SH', val:r.SH.toFixed(1), u:'K', cls: r.SH>=3&&r.SH<=20?'hl-green':'hl-orange'},
-    {lbl:'Podchladenie SC', val:r.SC.toFixed(1), u:'K', cls: r.SC>=2&&r.SC<=12?'hl-blue':'hl-orange'},
-    {lbl:'Podiel pary x₄', val:(r.x4*100).toFixed(1), u:'%', cls:''},
-  ];
-  document.getElementById('kpiGrid').innerHTML = kpis.map(k=>
-    `<div class="kpi ${k.cls}"><div class="kpi-lbl">${k.lbl}</div><div><span class="kpi-val">${k.val}</span><span class="kpi-u">${k.u}</span></div></div>`
-  ).join('');
-
-  // State points
-  const pts = [
-    {cls:'rs1', num:'1', name:'Sanie', rows:[
-      ['T₁', r.T1.toFixed(2), '°C'], ['P₁', r.P1.toFixed(3), 'bar(a)'],
-      ['h₁', r.h1.toFixed(2), 'kJ/kg'], ['s₁', r.s1.toFixed(4), 'kJ/(kg·K)'],
-      ['ρ₁', r.rho1.toFixed(2), 'kg/m³'], ['T_e,sat', r.Te_sat.toFixed(2), '°C'],
-    ]},
-    {cls:'rs2', num:'2', name:'Výtlak', rows:[
-      ['T₂', r.T2.toFixed(2), '°C'], ['P₂', r.P2.toFixed(3), 'bar(a)'],
-      ['h₂', r.h2.toFixed(2), 'kJ/kg'], ['h₂ₛ', r.h2s.toFixed(2), 'kJ/kg'],
-      ['T_c,sat', r.Tc_sat.toFixed(2), '°C'], ['', '', ''],
-    ]},
-    {cls:'rs3', num:'3', name:'Kvapalina', rows:[
-      ['T₃', r.T3.toFixed(2), '°C'], ['P₃', r.P3.toFixed(3), 'bar(a)'],
-      ['h₃', r.h3.toFixed(2), 'kJ/kg'], ['SC', r.SC.toFixed(2), 'K'],
-      ['', '', ''], ['', '', ''],
-    ]},
-    {cls:'rs4', num:'4', name:'Za exp.', rows:[
-      ['h₄', r.h4.toFixed(2), 'kJ/kg'], ['P₄≈P₁', r.P1.toFixed(3), 'bar(a)'],
-      ['x₄', (r.x4*100).toFixed(1), '%'], ['T₄,sat', r.Te_sat.toFixed(2), '°C'],
-      ['', '', ''], ['', '', ''],
-    ]},
-  ];
-  document.getElementById('statePointsGrid').innerHTML = pts.map(p=>
-    `<div class="res-state-pt ${p.cls}">
-      <div class="rs-ptnum">Bod ${p.num} — ${p.name}</div>
-      ${p.rows.filter(r=>r[0]).map(r=>`<div class="rs-row"><span>${r[0]}</span><span class="rs-val">${r[1]}<small style="font-size:9px;color:#9aa3b8;margin-left:3px">${r[2]}</small></span></div>`).join('')}
-    </div>`
-  ).join('');
-
-  // Derived table
-  function evTag(ok, warn, val){
-    if(ok) return `<span style="font-size:9px;background:#dcfce7;color:#14532d;padding:2px 6px;border-radius:4px;font-weight:700">✓ OK</span>`;
-    if(warn) return `<span style="font-size:9px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-weight:700">⚠ ${val}</span>`;
-    return `<span style="font-size:9px;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700">✗ ${val}</span>`;
+  goStep(8);
+  document.getElementById('stepContent').innerHTML=`
+  <div class="step-header"><div class="step-icon-big si-gold">📊</div><div><div class="step-title">Results</div><div class="step-desc">Calculating cycle…</div></div></div>
+  <div class="card"><div class="calc-loading"><div class="calc-spinner"></div><div style="font-weight:600;color:#0d1f3c">Calculating thermodynamic cycle…</div><div style="font-size:11px;margin-top:6px">Using CoolProp WASM for accurate properties</div></div></div>`;
+  await new Promise(r=>setTimeout(r,80));
+  try{
+    calcResults=doCalculation();
+    renderStep8();
+    setTimeout(drawPHDiagram,100);
+  }catch(ex){
+    document.getElementById('stepContent').innerHTML=`
+    <div class="step-header"><div class="step-icon-big si-red">❌</div><div><div class="step-title">Calculation Error</div></div></div>
+    <div class="card"><div class="warn-box">❌ <div><strong>Error during calculation:</strong><br>${ex.message}<br><br>Check that all required fields are filled in correctly and CoolProp is loaded.</div></div></div>`;
   }
-  const derived = [
-    {
-      name: activeLang==='sk'?'Prehriat (SH) na saní':'Superheat (SH) at suction',
-      val: r.SH.toFixed(2), unit: 'K',
-      ev: r.SH<0?evTag(0,0,'Záplava!'):r.SH<3?evTag(0,0,'Kriticky nízky'):r.SH>25?evTag(0,1,'Vysoký'):evTag(1,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Podchladzenie (SC)':'Subcooling (SC)',
-      val: r.SC.toFixed(2), unit: 'K',
-      ev: r.SC<0?evTag(0,0,'Flash-gas!'):r.SC<2?evTag(0,1,'Nízke'):r.SC>15?evTag(0,1,'Vysoké'):evTag(1,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Kompresný pomer (CR)':'Compression ratio (CR)',
-      val: r.CR.toFixed(3), unit: ':1',
-      ev: r.CR<1.5?evTag(0,0,'Podozrivo nízky'):r.CR>8?evTag(0,1,'Vysoký'):evTag(1,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Špecifický chladiaci výkon q₀':'Specific cooling effect q₀',
-      val: r.q0.toFixed(2), unit: 'kJ/kg',
-      ev: evTag(r.q0>0,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Špecifická práca kompresora w':'Specific compressor work w',
-      val: r.w.toFixed(2), unit: 'kJ/kg',
-      ev: evTag(r.w>0,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Špecifické teplo kondenzátora q_c':'Specific condenser heat q_c',
-      val: r.qc.toFixed(2), unit: 'kJ/kg',
-      ev: evTag(r.qc>0,0,'')
-    },
-    {
-      name: 'COP (termodyn.)',
-      val: r.COP.toFixed(3), unit: 'W/W',
-      ev: r.COP<1?evTag(0,0,'Nízky'):r.COP<1.5?evTag(0,1,'Nízky'):evTag(1,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Izentropická účinnosť η_is':'Isentropic efficiency η_is',
-      val: (r.eta_is*100).toFixed(1), unit: '%',
-      ev: r.eta_is<0?evTag(0,0,'Chyba mer.'):r.eta_is>1?evTag(0,0,'Chyba mer.'):r.eta_is<0.5?evTag(0,1,'Nízka'):evTag(1,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Teplota kondenzácie T_c,sat':'Condensing temp. T_c,sat',
-      val: r.Tc_sat.toFixed(2), unit: '°C',
-      ev: (!isNaN(r.T_amb)&&r.Tc_sat>r.T_amb+30)?evTag(0,1,'Vysoká'):evTag(1,0,'')
-    },
-    {
-      name: activeLang==='sk'?'Teplota odparovania T_e,sat':'Evaporating temp. T_e,sat',
-      val: r.Te_sat.toFixed(2), unit: '°C',
-      ev: evTag(1,0,'')
-    },
-  ];
-  document.getElementById('derivedBody').innerHTML = derived.map(d=>
-    `<tr><td>${d.name}</td><td class="num">${d.val}</td><td class="unit">${d.unit}</td><td>${d.ev}</td></tr>`
-  ).join('');
-
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  P-H DIAGRAM
-// ═══════════════════════════════════════════════════════════════════
-function generateSatDome(fluid){
-  if(satDomeCache[fluid]) return satDomeCache[fluid];
-  const critT = {
-    'R134a':100.5,'R404A':71.5,'R410A':71.5,'R407C':86.0,'R22':95.5,
-    'R290':96.0,'R600a':134.0,'R32':77.5,'R448A':85.5,'R449A':82.5,'R717':132.0
-  };
-  const Tmax = (critT[fluid]||85) - 0.8;
-  const Tmin = -90;
-  const liq=[], vap=[];
-  for(let T=Tmin; T<=Tmax; T+=3){
+function doCalculation(){
+  const CP=Module; // CoolProp
+  function P(prop,i1,v1,i2,v2,fluid){return CP.PropsSI(prop,i1,v1,i2,v2,fluid);}
+
+  const ref=g('ref_sel')?g('ref_sel').value:'R410A';
+  const Te=parseFloat(g('Te_sat').value);
+  const Tc=parseFloat(g('Tc_sat').value);
+  const SH=parseFloat(g('SH_val').value);
+  const SC=parseFloat(g('SC_val').value);
+  const Q_req=g('Q_req')&&g('Q_req').value?parseFloat(g('Q_req').value):null;
+
+  // Get compressor params (from selected DB entry or manual)
+  const eta_is=selectedComp?selectedComp.eta_is:(parseFloat(g('c_eta_is')?g('c_eta_is').value:0.72)||0.72);
+  const eta_vol=selectedComp?selectedComp.eta_vol:(parseFloat(g('c_eta_vol')?g('c_eta_vol').value:0.85)||0.85);
+  const disp_cm3=selectedComp?selectedComp.disp_cm3:(parseFloat(g('c_disp')?g('c_disp').value:0)||0);
+  const rpm=selectedComp?selectedComp.rpm:(parseFloat(g('c_rpm')?g('c_rpm').value:2900)||2900);
+
+  // Saturation pressures
+  const P_evap=P('P','T',Te+273.15,'Q',1,ref)/1e5; // bar(a)
+  const P_cond=P('P','T',Tc+273.15,'Q',1,ref)/1e5;
+
+  // Point 1: Compressor suction (superheated vapor)
+  const T1=Te+SH;
+  const h1=P('H','T',T1+273.15,'P',P_evap*1e5,ref)/1000;
+  const s1=P('S','T',T1+273.15,'P',P_evap*1e5,ref)/1000;
+  const rho1=P('D','T',T1+273.15,'P',P_evap*1e5,ref);
+
+  // Point 2s: Isentropic discharge
+  const h2s=P('H','P',P_cond*1e5,'S',s1*1000,ref)/1000;
+
+  // Point 2: Actual discharge
+  const h2=h1+(h2s-h1)/eta_is;
+  const T2=P('T','P',P_cond*1e5,'H',h2*1000,ref)-273.15;
+
+  // Point 3: Condenser outlet (subcooled liquid)
+  const T3=Tc-SC;
+  const h3=P('H','T',T3+273.15,'P',P_cond*1e5,ref)/1000;
+
+  // Point 4: After expansion (isenthalpic)
+  const h4=h3;
+  const x4=P('Q','H',h4*1000,'P',P_evap*1e5,ref);
+  const T4=P('T','H',h4*1000,'P',P_evap*1e5,ref)-273.15;
+
+  // Mass flow from compressor displacement
+  const V_disp_m3=disp_cm3/1e6;
+  const n_rps=rpm/60;
+  const m_dot=(V_disp_m3>0)?(V_disp_m3*n_rps*eta_vol*rho1):0;
+
+  // Performance
+  const Q_evap=m_dot*(h1-h4);
+  const W_comp=m_dot*(h2-h1);
+  const Q_cond=m_dot*(h2-h3);
+  const COP=W_comp>0?Q_evap/W_comp:0;
+  const pi=P_cond/P_evap;
+
+  // Saturation dome points for diagram
+  const dome=buildSatDome(ref,CP);
+
+  // Pipe sizing
+  const pipes=calcPipes(ref,CP,{P_evap,P_cond,T1,T2,T3,m_dot,rho1,h1,h2,h3});
+
+  // Validation
+  const validation=buildValidation({Te,Tc,SH,SC,T2,COP,pi,eta_is,Q_evap,Q_req,x4,m_dot,W_comp});
+
+  return{ref,refrigerant:ref,Te,Tc,SH,SC,P_evap,P_cond,T1,T2,T3,T4,h1,h2,h2s,h3,h4,x4,s1,rho1,m_dot,Q_evap,W_comp,Q_cond,COP,pi,eta_is,eta_vol,Q_req,dome,pipes,validation};
+}
+
+function buildSatDome(ref,CP){
+  function P(prop,i1,v1,i2,v2){return CP.PropsSI(prop,i1,v1,i2,v2,ref);}
+  const pts_liq=[],pts_vap=[];
+  let Tcrit;
+  try{Tcrit=P('T_critical','T',300,'P',1e5)-273.15;}catch{Tcrit=70;}
+  const Tmin=-50,Tmax=Math.min(Tcrit-1,75);
+  for(let T=Tmin;T<=Tmax;T+=2){
     try{
-      const P  = cpProp('P','T',T+273.15,'Q',0,fluid)/1e5;
-      const hL = cpProp('H','T',T+273.15,'Q',0,fluid)/1000;
-      const hV = cpProp('H','T',T+273.15,'Q',1,fluid)/1000;
-      if(P>0 && isFinite(hL) && isFinite(hV)){
-        liq.push({h:hL,P}); vap.push({h:hV,P});
-      }
-    } catch(e){}
+      const hf=P('H','T',T+273.15,'Q',0)/1000;
+      const hg=P('H','T',T+273.15,'Q',1)/1000;
+      const pbar=P('P','T',T+273.15,'Q',0)/1e5;
+      pts_liq.push({h:hf,P:pbar,T});
+      pts_vap.push({h:hg,P:pbar,T});
+    }catch{}
   }
-  satDomeCache[fluid] = {liq,vap};
-  return {liq,vap};
+  // Critical point
+  try{
+    const hcrit=CP.PropsSI('H','T',Tcrit+273.15,'Q',0.5,ref)/1000;
+    const pcrit=CP.PropsSI('P','T',Tcrit+273.15,'Q',0.5,ref)/1e5;
+    pts_liq.push({h:hcrit,P:pcrit,T:Tcrit});
+    pts_vap.push({h:hcrit,P:pcrit,T:Tcrit});
+  }catch{}
+  return{liq:pts_liq,vap:pts_vap};
 }
 
-function drawPHDiagram(r){
-  if(!cpReady) return;
-  const W=660, H=380;
-  const pad={top:28,right:22,bottom:46,left:52};
-  const pW=W-pad.left-pad.right, pH=H-pad.top-pad.bottom;
+function calcPipes(ref,CP,cyc){
+  function P(prop,i1,v1,i2,v2){return CP.PropsSI(prop,i1,v1,i2,v2,ref);}
+  const results=[];
+  // Suction line — vapor
+  const L_suc=(parseFloat(g('ps_len')?g('ps_len').value:5)||5)+(parseFloat(g('ps_fit')?g('ps_fit').value:2)||2);
+  const D_suc_in=parseFloat(g('ps_dia')?g('ps_dia').value:0)||0;
+  const rho_suc=cyc.rho1;
+  const mu_suc=P('viscosity','T',cyc.T1+273.15,'P',cyc.P_evap*1e5)/1000; // Pa·s
+  const v_suc_rec=10; // target velocity m/s
+  const D_suc_rec=Math.sqrt(4*cyc.m_dot/(Math.PI*rho_suc*v_suc_rec))*1000; // mm
+  const D_suc=D_suc_in>0?D_suc_in/1000:D_suc_rec/1000;
+  const vel_suc=cyc.m_dot/(rho_suc*Math.PI*D_suc*D_suc/4);
+  const Re_suc=rho_suc*vel_suc*D_suc/mu_suc;
+  const f_suc=Re_suc>2300?0.316/Math.pow(Re_suc,0.25):64/Re_suc;
+  const dP_suc=f_suc*(L_suc/D_suc)*(rho_suc*vel_suc*vel_suc/2)/1000;
+  results.push({name:'Suction',D_rec_mm:D_suc_rec,vel:vel_suc,dP_kPa:dP_suc,ok:vel_suc>=5&&vel_suc<=18});
 
-  // Generate saturation dome
-  const dome = generateSatDome(r.fluid);
+  // Discharge line — hot vapor
+  const L_dis=(parseFloat(g('pd_len')?g('pd_len').value:3)||3)+(parseFloat(g('pd_fit')?g('pd_fit').value:1.5)||1.5);
+  const D_dis_in=parseFloat(g('pd_dia')?g('pd_dia').value:0)||0;
+  const rho_dis=P('D','T',cyc.T2+273.15,'P',cyc.P_cond*1e5);
+  const mu_dis=P('viscosity','T',cyc.T2+273.15,'P',cyc.P_cond*1e5)/1000;
+  const v_dis_rec=14;
+  const D_dis_rec=Math.sqrt(4*cyc.m_dot/(Math.PI*rho_dis*v_dis_rec))*1000;
+  const D_dis=D_dis_in>0?D_dis_in/1000:D_dis_rec/1000;
+  const vel_dis=cyc.m_dot/(rho_dis*Math.PI*D_dis*D_dis/4);
+  const Re_dis=rho_dis*vel_dis*D_dis/mu_dis;
+  const f_dis=Re_dis>2300?0.316/Math.pow(Re_dis,0.25):64/Re_dis;
+  const dP_dis=f_dis*(L_dis/D_dis)*(rho_dis*vel_dis*vel_dis/2)/1000;
+  results.push({name:'Discharge',D_rec_mm:D_dis_rec,vel:vel_dis,dP_kPa:dP_dis,ok:vel_dis>=8&&vel_dis<=22});
 
-  // Collect all h and P for axis bounds
-  const allH=[r.h1,r.h2,r.h3,r.h4];
-  const allP=[r.P1,r.P2];
-  dome.liq.forEach(p=>{allH.push(p.h);allP.push(p.P);});
-  dome.vap.forEach(p=>{allH.push(p.h);allP.push(p.P);});
+  // Liquid line
+  const L_liq=(parseFloat(g('pl_len')?g('pl_len').value:4)||4)+(parseFloat(g('pl_fit')?g('pl_fit').value:1.5)||1.5);
+  const D_liq_in=parseFloat(g('pl_dia')?g('pl_dia').value:0)||0;
+  const rho_liq=P('D','T',cyc.T3+273.15,'P',cyc.P_cond*1e5);
+  const mu_liq=P('viscosity','T',cyc.T3+273.15,'P',cyc.P_cond*1e5)/1000;
+  const v_liq_rec=0.8;
+  const D_liq_rec=Math.sqrt(4*cyc.m_dot/(Math.PI*rho_liq*v_liq_rec))*1000;
+  const D_liq=D_liq_in>0?D_liq_in/1000:D_liq_rec/1000;
+  const vel_liq=cyc.m_dot/(rho_liq*Math.PI*D_liq*D_liq/4);
+  const Re_liq=rho_liq*vel_liq*D_liq/mu_liq;
+  const f_liq=Re_liq>2300?0.316/Math.pow(Re_liq,0.25):64/Re_liq;
+  const dP_liq=f_liq*(L_liq/D_liq)*(rho_liq*vel_liq*vel_liq/2)/1000;
+  results.push({name:'Liquid',D_rec_mm:D_liq_rec,vel:vel_liq,dP_kPa:dP_liq,ok:vel_liq>=0.3&&vel_liq<=2.0});
 
-  const margin=30;
-  let hMin=Math.min(...allH)-margin, hMax=Math.max(...allH)+margin;
-  let PMin=Math.min(...allP)*0.6, PMax=Math.max(...allP)*1.5;
-  // Ensure PMin > 0
-  if(PMin<=0) PMin=0.05;
+  return results;
+}
 
-  const tx = h => pad.left + (h-hMin)/(hMax-hMin)*pW;
-  const ty = P => pad.top + pH - Math.max(0,Math.min(1,(Math.log(P/PMin)/Math.log(PMax/PMin))))*pH;
-
-  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fafbfd;border-radius:8px">`;
-
-  // Background bands
-  const yP1=ty(r.P1), yP2=ty(r.P2);
-  svg+=`<rect x="${pad.left}" y="${pad.top}" width="${pW}" height="${pH}" fill="#f0f6ff" rx="2"/>`;
-  svg+=`<rect x="${pad.left}" y="${yP2}" width="${pW}" height="${yP1-yP2}" fill="#fff7f0" rx="0"/>`;
-
-  // Grid lines - pressure
-  const pressMarks=[];
-  for(let e=-1;e<=3;e++) for(let m of[1,1.5,2,3,5,7]) {
-    const P=m*Math.pow(10,e);
-    if(P>=PMin*0.9&&P<=PMax*1.1) pressMarks.push(P);
+function buildValidation({Te,Tc,SH,SC,T2,COP,pi,eta_is,Q_evap,Q_req,x4,m_dot,W_comp}){
+  const v=[];
+  // Superheat
+  if(SH<0) v.push({sev:'crit',name:'Compressor Flood-Back Risk',desc:`Superheat is ${SH.toFixed(1)} K — negative SH means liquid refrigerant entering compressor! Adjust TEV/EEV setpoint immediately.`});
+  else if(SH<3) v.push({sev:'crit',name:'Very Low Superheat',desc:`SH = ${SH.toFixed(1)} K (below 3 K) — risk of liquid slugging. Minimum recommended: 5 K.`});
+  else if(SH<=12) v.push({sev:'ok',name:'Superheat OK',desc:`SH = ${SH.toFixed(1)} K — within normal operating range (5–15 K).`});
+  else v.push({sev:'warn',name:'High Superheat',desc:`SH = ${SH.toFixed(1)} K — elevated superheat reduces cooling capacity and increases discharge temperature.`});
+  // Subcooling
+  if(SC<0) v.push({sev:'crit',name:'Flash Gas in Liquid Line',desc:`Subcooling = ${SC.toFixed(1)} K — vapor present in liquid line. Expansion valve cannot control properly.`});
+  else if(SC<2) v.push({sev:'warn',name:'Low Subcooling',desc:`SC = ${SC.toFixed(1)} K — close to saturation. Risk of flash gas. Check refrigerant charge.`});
+  else if(SC<=12) v.push({sev:'ok',name:'Subcooling OK',desc:`SC = ${SC.toFixed(1)} K — adequate subcooling, no flash gas risk.`});
+  else v.push({sev:'warn',name:'High Subcooling',desc:`SC = ${SC.toFixed(1)} K — may indicate overcharge or oversized condenser.`});
+  // Discharge temp
+  if(T2>130) v.push({sev:'crit',name:'Critical Discharge Temperature',desc:`T₂ = ${T2.toFixed(1)} °C — risk of oil carbonization and compressor damage! Max recommended: 120 °C.`});
+  else if(T2>110) v.push({sev:'warn',name:'High Discharge Temperature',desc:`T₂ = ${T2.toFixed(1)} °C — elevated oil temperature. Monitor compressor. Consider liquid injection.`});
+  else v.push({sev:'ok',name:'Discharge Temperature OK',desc:`T₂ = ${T2.toFixed(1)} °C — within safe operating range.`});
+  // Compression ratio
+  if(pi>10) v.push({sev:'crit',name:'High Compression Ratio',desc:`π = ${pi.toFixed(1)} — very high! Low volumetric efficiency, very high T₂. Consider two-stage system.`});
+  else if(pi>6) v.push({sev:'warn',name:'Elevated Compression Ratio',desc:`π = ${pi.toFixed(1)} — moderately high. Check discharge temperature carefully.`});
+  else v.push({sev:'ok',name:'Compression Ratio OK',desc:`π = ${pi.toFixed(1)} — within normal operating range.`});
+  // Capacity vs required
+  if(Q_req&&m_dot>0){
+    if(Q_evap<Q_req*0.95) v.push({sev:'crit',name:'Compressor Undersized',desc:`Calculated Q̇ = ${Q_evap.toFixed(1)} kW < required ${Q_req.toFixed(1)} kW. Select larger compressor.`});
+    else if(Q_evap>Q_req*1.5) v.push({sev:'warn',name:'Compressor Oversized',desc:`Q̇ = ${Q_evap.toFixed(1)} kW — ${((Q_evap/Q_req-1)*100).toFixed(0)}% over required. Consider smaller compressor or inverter drive.`});
+    else v.push({sev:'ok',name:'Capacity Matches Load',desc:`Q̇ = ${Q_evap.toFixed(1)} kW meets required ${Q_req.toFixed(1)} kW (${((Q_evap/Q_req-1)*100).toFixed(0)}% margin).`});
+  } else if(m_dot===0){
+    v.push({sev:'warn',name:'No Compressor Selected',desc:'No compressor displacement entered — mass flow and capacity cannot be calculated. Select compressor from database.'});
   }
-  svg+=`<g stroke="#e4e9f4" stroke-width="0.5">`;
-  pressMarks.forEach(P=>{
-    const y=ty(P);
-    if(y>=pad.top&&y<=pad.top+pH) svg+=`<line x1="${pad.left}" y1="${y}" x2="${pad.left+pW}" y2="${y}"/>`;
-  });
-  // Grid lines - enthalpy
-  const hStep=Math.max(20,Math.ceil((hMax-hMin)/8/10)*10);
-  for(let h=Math.ceil(hMin/hStep)*hStep;h<=hMax;h+=hStep){
-    svg+=`<line x1="${tx(h)}" y1="${pad.top}" x2="${tx(h)}" y2="${pad.top+pH}"/>`;
-  }
-  svg+=`</g>`;
+  // COP
+  if(COP<1.5) v.push({sev:'warn',name:'Low COP',desc:`COP = ${COP.toFixed(2)} — below average. Check Te/Tc range and component efficiencies.`});
+  else if(COP>4.5) v.push({sev:'warn',name:'Verify COP',desc:`COP = ${COP.toFixed(2)} — unusually high. Double-check input temperatures and efficiencies.`});
+  else v.push({sev:'ok',name:'COP within normal range',desc:`COP = ${COP.toFixed(2)} — acceptable for selected operating conditions.`});
+  return v;
+}
 
-  // Saturation dome
-  if(dome.liq.length>2){
-    let liqPts=dome.liq.map(p=>`${tx(p.h).toFixed(1)},${ty(p.P).toFixed(1)}`).join(' ');
-    let vapPts=[...dome.vap].reverse().map(p=>`${tx(p.h).toFixed(1)},${ty(p.P).toFixed(1)}`).join(' ');
-    svg+=`<polygon points="${liqPts} ${vapPts}" fill="rgba(37,99,235,0.06)" stroke="none"/>`;
-    svg+=`<polyline points="${liqPts}" fill="none" stroke="#3b82f6" stroke-width="1.8"/>`;
-    svg+=`<polyline points="${dome.vap.map(p=>`${tx(p.h).toFixed(1)},${ty(p.P).toFixed(1)}`).join(' ')}" fill="none" stroke="#3b82f6" stroke-width="1.8" stroke-dasharray="5,3"/>`;
-  }
+// ════════════════════════════════
+//  P-H DIAGRAM
+// ════════════════════════════════
+function drawPHDiagram(){
+  const canvas=document.getElementById('phCanvas');
+  if(!canvas||!calcResults)return;
+  const r=calcResults;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const pad={l:70,r:30,t:20,b:50};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
 
-  // Pressure lines (HP and LP horizontal dashes)
-  svg+=`<line x1="${pad.left}" y1="${ty(r.P2)}" x2="${pad.left+pW}" y2="${ty(r.P2)}" stroke="#dc2626" stroke-width="1" stroke-dasharray="6,3" opacity="0.5"/>`;
-  svg+=`<line x1="${pad.left}" y1="${ty(r.P1)}" x2="${pad.left+pW}" y2="${ty(r.P1)}" stroke="#2563eb" stroke-width="1" stroke-dasharray="6,3" opacity="0.5"/>`;
+  // Determine h and P ranges from dome + cycle points
+  const allH=[r.h1,r.h2,r.h3,r.h4,...r.dome.liq.map(p=>p.h),...r.dome.vap.map(p=>p.h)].filter(v=>v&&isFinite(v));
+  const allP=[r.P_evap,r.P_cond,...r.dome.liq.map(p=>p.P),...r.dome.vap.map(p=>p.P)].filter(v=>v&&isFinite(v));
+  const hMin=Math.min(...allH)-20,hMax=Math.max(...allH)+20;
+  const pMin=Math.max(0.2,Math.min(...allP)*0.7),pMax=Math.max(...allP)*1.3;
+  const logPMin=Math.log10(pMin),logPMax=Math.log10(pMax);
 
-  // Cycle lines
-  // 1→2: compression (curved-ish line)
-  svg+=`<line x1="${tx(r.h1)}" y1="${ty(r.P1)}" x2="${tx(r.h2)}" y2="${ty(r.P2)}" stroke="#f97316" stroke-width="2.5"/>`;
-  // Arrow on 1→2
-  {const dx=tx(r.h2)-tx(r.h1),dy=ty(r.P2)-ty(r.P1),len=Math.sqrt(dx*dx+dy*dy);
-   const mx=tx(r.h1)+dx*0.6,my=ty(r.P1)+dy*0.6,ux=dx/len,uy=dy/len;
-   svg+=`<polygon points="${mx+ux*7},${my+uy*7} ${mx-ux*5+uy*4},${my-uy*5-ux*4} ${mx-ux*5-uy*4},${my-uy*5+ux*4}" fill="#f97316"/>`;}
-  // 2→3: condensation (horizontal at P2)
-  svg+=`<line x1="${tx(r.h2)}" y1="${ty(r.P2)}" x2="${tx(r.h3)}" y2="${ty(r.P2)}" stroke="#dc2626" stroke-width="2.5"/>`;
-  {const mx=(tx(r.h2)+tx(r.h3))/2,my=ty(r.P2);
-   svg+=`<polygon points="${mx+8},${my} ${mx-5},${my-4} ${mx-5},${my+4}" fill="#dc2626"/>`;}
-  // 3→4: expansion (isenthalpic, vertical)
-  svg+=`<line x1="${tx(r.h3)}" y1="${ty(r.P2)}" x2="${tx(r.h4)}" y2="${ty(r.P1)}" stroke="#7c3aed" stroke-width="2.5"/>`;
-  {const mx=(tx(r.h3)+tx(r.h4))/2,my=(ty(r.P2)+ty(r.P1))/2;
-   svg+=`<polygon points="${mx},${my+8} ${mx-4},${my-5} ${mx+4},${my-5}" fill="#7c3aed"/>`;}
-  // 4→1: evaporation (horizontal at P1)
-  svg+=`<line x1="${tx(r.h4)}" y1="${ty(r.P1)}" x2="${tx(r.h1)}" y2="${ty(r.P1)}" stroke="#2563eb" stroke-width="2.5"/>`;
-  {const mx=(tx(r.h4)+tx(r.h1))/2,my=ty(r.P1);
-   svg+=`<polygon points="${mx+8},${my} ${mx-5},${my-4} ${mx-5},${my+4}" fill="#2563eb"/>`;}
+  function xH(h){return pad.l+((h-hMin)/(hMax-hMin))*cW;}
+  function yP(p){return pad.t+((logPMax-Math.log10(Math.max(p,0.01)))/(logPMax-logPMin))*cH;}
 
-  // State point circles + labels
-  const pts2=[
-    {h:r.h1,P:r.P1,lbl:'1',c:'#2563eb',dx:8,dy:-8},
-    {h:r.h2,P:r.P2,lbl:'2',c:'#dc2626',dx:8,dy:-8},
-    {h:r.h3,P:r.P2,lbl:'3',c:'#059669',dx:8,dy:-8},
-    {h:r.h4,P:r.P1,lbl:'4',c:'#7c3aed',dx:8,dy:-8},
-  ];
-  pts2.forEach(p=>{
-    const x=tx(p.h),y=ty(p.P);
-    svg+=`<circle cx="${x}" cy="${y}" r="6" fill="${p.c}" stroke="#fff" stroke-width="2"/>`;
-    svg+=`<text x="${x+p.dx}" y="${y+p.dy}" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="${p.c}">${p.lbl}</text>`;
-  });
+  // Background
+  ctx.fillStyle='#0f172a';
+  ctx.fillRect(0,0,W,H);
 
-  // HP / LP labels on right
-  svg+=`<text x="${pad.left+pW+4}" y="${ty(r.P2)+4}" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#dc2626">HP</text>`;
-  svg+=`<text x="${pad.left+pW+4}" y="${ty(r.P1)+4}" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#2563eb">LP</text>`;
+  // Grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
+  for(let h=Math.ceil(hMin/50)*50;h<=hMax;h+=50){const x=xH(h);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+cH);ctx.stroke();}
+  for(let p=0.5;p<=pMax*1.1;p*=1.5){const y=yP(p);if(y>=pad.t&&y<=pad.t+cH){ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();}}
 
   // Axes
-  svg+=`<line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${pad.top+pH+1}" stroke="#0d1f3c" stroke-width="1.5"/>`;
-  svg+=`<line x1="${pad.left-1}" y1="${pad.top+pH}" x2="${pad.left+pW}" y2="${pad.top+pH}" stroke="#0d1f3c" stroke-width="1.5"/>`;
-
-  // Y axis ticks + labels
-  pressMarks.forEach(P=>{
-    const y=ty(P);
-    if(y>=pad.top&&y<=pad.top+pH){
-      svg+=`<line x1="${pad.left-4}" y1="${y}" x2="${pad.left}" y2="${y}" stroke="#0d1f3c" stroke-width="1"/>`;
-      const label = P>=1 ? P.toFixed(P%1===0?0:1) : P.toFixed(2);
-      svg+=`<text x="${pad.left-7}" y="${y+3.5}" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#7a8299">${label}</text>`;
-    }
-  });
-
-  // X axis ticks + labels
-  for(let h=Math.ceil(hMin/hStep)*hStep;h<=hMax;h+=hStep){
-    const x=tx(h);
-    svg+=`<line x1="${x}" y1="${pad.top+pH}" x2="${x}" y2="${pad.top+pH+4}" stroke="#0d1f3c" stroke-width="1"/>`;
-    svg+=`<text x="${x}" y="${pad.top+pH+14}" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" fill="#7a8299">${h}</text>`;
-  }
+  ctx.strokeStyle='#475569';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+cH);ctx.lineTo(pad.l+cW,pad.t+cH);ctx.stroke();
 
   // Axis labels
-  svg+=`<text x="${pad.left+pW/2}" y="${H-4}" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#4b5563">h [kJ/kg]</text>`;
-  svg+=`<text x="11" y="${pad.top+pH/2}" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#4b5563" transform="rotate(-90,11,${pad.top+pH/2})">P [bar(a)]</text>`;
+  ctx.fillStyle='#94a3b8';ctx.font='11px Inter,Arial';ctx.textAlign='center';
+  ctx.fillText('Specific Enthalpy h [kJ/kg]',pad.l+cW/2,H-8);
+  ctx.save();ctx.translate(14,pad.t+cH/2);ctx.rotate(-Math.PI/2);ctx.fillText('Pressure P [bar(a)]',0,0);ctx.restore();
 
-  // Title
-  svg+=`<text x="${pad.left+pW/2}" y="${pad.top-8}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#9aa3b8">${r.fluid} — Parno-kompresný cyklus</text>`;
+  // Tick labels
+  ctx.font='10px Inter,Arial';ctx.textAlign='center';
+  for(let h=Math.ceil(hMin/50)*50;h<=hMax;h+=50){ctx.fillStyle='#64748b';ctx.fillText(h,xH(h),pad.t+cH+16);}
+  ctx.textAlign='right';
+  for(let p of[0.5,1,2,5,10,20,50]){const y=yP(p);if(y>=pad.t&&y<=pad.t+cH){ctx.fillStyle='#64748b';ctx.fillText(p.toFixed(p<1?1:0),pad.l-6,y+4);}}
 
-  svg+=`</svg>`;
+  // Isobars
+  const drawIsobar=(P,color)=>{const y=yP(P);ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();ctx.setLineDash([]);};
+  drawIsobar(r.P_evap,'rgba(37,99,235,0.4)');
+  drawIsobar(r.P_cond,'rgba(220,38,38,0.4)');
 
-  document.getElementById('phWrap').innerHTML = svg;
-  document.getElementById('phLegend').style.display='flex';
-  const rb = document.getElementById('phRefrigBadge');
-  rb.style.display='block'; rb.textContent=r.fluid;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  DIAGNOSTICS ENGINE
-// ═══════════════════════════════════════════════════════════════════
-function runDiagnostics(r){
-  const faults=[];
-
-  // Helper
-  const add=(severity,nameKey,descKey,confidence,causes,actions)=>{
-    faults.push({severity, name:t(nameKey), desc:t(descKey), confidence, causes, actions});
-  };
-
-  // ── SUCTION SUPERHEAT ──
-  if(r.SH < 0){
-    add('CRITICAL','d_flood_name','d_flood_desc', 95,
-      activeLang==='sk'
-        ? ['Expanzný ventil príliš otvorený','Nízke tepelné zaťaženie výparníka','Porucha TXV/EEV']
-        : ['Expansion valve too open','Low evaporator heat load','TXV/EEV fault'],
-      activeLang==='sk'
-        ? ['Uzatvorte expanzný ventil','Skontrolujte tepelné zaťaženie','Overte bulb TXV']
-        : ['Close expansion valve','Check heat load','Verify TXV bulb']
-    );
-  } else if(r.SH < 3){
-    add('CRITICAL','d_lowsh_name','d_lowsh_desc', 85,
-      activeLang==='sk'
-        ? ['Expanzný ventil príliš otvorený','Nesprávny kontakt snímača TXV']
-        : ['Expansion valve too open','Poor TXV bulb contact'],
-      activeLang==='sk'
-        ? ['Nastavte expanzný ventil','Skontrolujte upevnenie snímača TXV']
-        : ['Adjust expansion valve','Check TXV bulb mounting']
-    );
-  } else if(r.SH > 25){
-    add('WARNING','d_highsh_name','d_highsh_desc', 80,
-      activeLang==='sk'
-        ? ['Nedostatok chladiva (únik)','Zapchatý filter-sušič','TXV príliš zatvorený','Zlý kontakt bulb TXV']
-        : ['Low refrigerant charge (leak)','Blocked filter-drier','TXV too closed','Poor TXV bulb contact'],
-      activeLang==='sk'
-        ? ['Skontrolujte plnenie chladiva a úniky','Vymeňte filter-sušič','Nastavte TXV']
-        : ['Check refrigerant charge and leaks','Replace filter-drier','Adjust TXV']
-    );
+  // Saturation dome
+  ctx.lineWidth=1.5;ctx.strokeStyle='#94a3b8';ctx.setLineDash([5,3]);
+  if(r.dome.liq.length>0){
+    ctx.beginPath();
+    r.dome.liq.forEach((pt,i)=>{const x=xH(pt.h),y=yP(pt.P);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    r.dome.vap.slice().reverse().forEach((pt)=>{ctx.lineTo(xH(pt.h),yP(pt.P));});
+    ctx.stroke();
   }
+  ctx.setLineDash([]);
 
-  // ── SUBCOOLING ──
-  if(r.SC < 0){
-    add('WARNING','d_flashgas_name','d_flashgas_desc', 90,
-      activeLang==='sk'
-        ? ['Nedostatok chladiva','Zapchatý filter-sušič','Vysoký tlakový spád v kvapalinovom potrubí']
-        : ['Low refrigerant charge','Blocked filter-drier','High pressure drop in liquid line'],
-      activeLang==='sk'
-        ? ['Skontrolujte plnenie chladiva','Vymeňte filter-sušič']
-        : ['Check refrigerant charge','Replace filter-drier']
-    );
-  } else if(r.SC < 2){
-    add('WARNING','d_lowsc_name','d_lowsc_desc', 75,
-      activeLang==='sk'
-        ? ['Nedostatok chladiva (únik)','Znečistený kondenzátor']
-        : ['Low refrigerant charge (leak)','Dirty condenser'],
-      activeLang==='sk'
-        ? ['Skontrolujte úniky a plnenie','Vyčistite kondenzátor']
-        : ['Check for leaks and charge','Clean condenser']
-    );
-  } else if(r.SC > 15){
-    add('INFO','d_highsc_name','d_highsc_desc', 60,
-      activeLang==='sk'
-        ? ['Možné preplnenie chladivom','Výborný výkon kondenzátora']
-        : ['Possible refrigerant overcharge','Excellent condenser performance'],
-      activeLang==='sk'
-        ? ['Skontrolujte celkové plnenie chladiva']
-        : ['Verify total refrigerant charge']
-    );
-  }
-
-  // ── DISCHARGE TEMPERATURE ──
-  if(r.T2 > 120){
-    add('CRITICAL','d_highdisch_name','d_highdisch_desc', 95,
-      activeLang==='sk'
-        ? ['Znečistený kondenzátor','Nedostatok chladiva','Vysoký kompresný pomer','Vysoký prehriat sania']
-        : ['Dirty condenser','Low refrigerant charge','High compression ratio','High suction superheat'],
-      activeLang==='sk'
-        ? ['OKAMŽITE zastavte systém','Vyčistite kondenzátor','Skontrolujte chladivo']
-        : ['IMMEDIATELY stop system','Clean condenser','Check refrigerant']
-    );
-  } else if(r.T2 > 100){
-    add('WARNING','d_warndisch_name','d_warndisch_desc', 80,
-      activeLang==='sk'
-        ? ['Znečistený kondenzátor','Nízky objem chladiva','Vysoký prehriat']
-        : ['Dirty condenser','Low refrigerant','High superheat'],
-      activeLang==='sk'
-        ? ['Vyčistite kondenzátor','Skontrolujte chladivo a tlaky']
-        : ['Clean condenser','Check refrigerant and pressures']
-    );
-  }
-
-  // ── COMPRESSION RATIO ──
-  if(r.P1 >= r.P2){
-    add('CRITICAL','d_pswap_name','d_pswap_desc', 99,
-      activeLang==='sk'
-        ? ['Vymenené tlakomery','Porucha snímačov tlaku']
-        : ['Swapped pressure gauges','Pressure sensor fault'],
-      activeLang==='sk'
-        ? ['Skontrolujte zapojenie tlakomerov','Overte funkčnosť snímačov']
-        : ['Check pressure gauge connections','Verify sensor function']
-    );
-  } else {
-    if(r.CR > 8){
-      add('WARNING','d_highcr_name','d_highcr_desc', 85,
-        activeLang==='sk'
-          ? ['Znečistený kondenzátor','Príliš nízka teplota odparovania']
-          : ['Dirty condenser','Too low evaporating temperature'],
-        activeLang==='sk'
-          ? ['Vyčistite kondenzátor','Overte nastavenie systému']
-          : ['Clean condenser','Verify system setup']
-      );
-    } else if(r.CR < 1.5){
-      add('WARNING','d_lowcr_name','d_lowcr_desc', 80,
-        activeLang==='sk'
-          ? ['Porucha ventilov kompresora','Chyba merania tlaku']
-          : ['Compressor valve failure','Pressure measurement error'],
-        activeLang==='sk'
-          ? ['Skontrolujte kompresor','Overte tlakomery']
-          : ['Check compressor','Verify pressure gauges']
-      );
-    }
-  }
-
-  // ── ISENTROPIC EFFICIENCY ──
-  if(r.P1 < r.P2){
-    if(r.eta_is < 0.5 && r.eta_is > 0){
-      add('WARNING','d_loweta_name','d_loweta_desc', 75,
-        activeLang==='sk'
-          ? ['Opotrebované ventily kompresora','Vnútorné úniky kompresora','Opotrebovanie piestov/skrutiek']
-          : ['Worn compressor valves','Internal compressor leaks','Piston/screw wear'],
-        activeLang==='sk'
-          ? ['Zmerajte kompresnú skúšku','Zvážte generálnu opravu']
-          : ['Perform compression test','Consider compressor overhaul']
-      );
-    } else if(r.eta_is > 1.0){
-      add('WARNING','d_higheta_name','d_higheta_desc', 90,
-        activeLang==='sk'
-          ? ['Nepresný teplomer výtlaku','Nepresný tlakomer sania','Chyba snímačov']
-          : ['Inaccurate discharge thermometer','Inaccurate suction pressure gauge','Sensor errors'],
-        activeLang==='sk'
-          ? ['Skontrolujte kalibráciu snímačov','Overte merania referenčným prístrojom']
-          : ['Check sensor calibration','Verify with reference instrument']
-      );
-    }
-  }
-
-  // ── CONDENSING TEMPERATURE VS AMBIENT ──
-  if(!isNaN(r.T_amb) && r.Tc_sat > r.T_amb + 30){
-    add('WARNING','d_highcond_name','d_highcond_desc', 70,
-      activeLang==='sk'
-        ? ['Znečistený kondenzátor','Nedostatočný prietok vzduchu','Nekondenzovateľné plyny v systéme']
-        : ['Dirty condenser','Insufficient airflow','Non-condensables in system'],
-      activeLang==='sk'
-        ? ['Vyčistite kondenzátor','Skontrolujte ventilátor','Odplyňte systém']
-        : ['Clean condenser','Check fan','Purge system of non-condensables']
-    );
-  }
-
-  // ── COP ──
-  if(r.COP < 1.5 && r.q0 > 0){
-    add('INFO','d_lowcop_name','d_lowcop_desc', 60,
-      activeLang==='sk'
-        ? ['Vysoký kompresný pomer','Nízka účinnosť kompresora','Neoptimálne podmienky']
-        : ['High compression ratio','Low compressor efficiency','Suboptimal conditions'],
-      activeLang==='sk'
-        ? ['Znižte kondenzačnú teplotu','Zvýšte teplotu odparovania ak je možné','Skontrolujte kompresor']
-        : ['Reduce condensing temperature','Raise evaporating temperature if possible','Check compressor']
-    );
-  }
-
-  // ── VAPOR QUALITY x4 ──
-  if(r.x4 > 0.35){
-    add('INFO','d_highx4_name','d_highx4_desc', 60,
-      activeLang==='sk'
-        ? ['Nízke podchladzenie pred expanziou','Nedostatok chladiva']
-        : ['Low subcooling before expansion','Low refrigerant charge'],
-      activeLang==='sk'
-        ? ['Zlepšite podchladzovanie','Skontrolujte plnenie chladiva']
-        : ['Improve subcooling','Check refrigerant charge']
-    );
-  }
-
-  displayDiagnostics(faults);
-}
-
-function displayDiagnostics(faults){
-  const out = document.getElementById('diagOutput');
-  const badge = document.getElementById('diagBadge');
-
-  if(faults.length===0){
-    out.innerHTML=`<div class="fault-item fault-ok">
-      <div class="fault-head">
-        <span class="fault-badge fb-info">✓ OK</span>
-        <span class="fault-name">${t('d_ok')}</span>
-      </div>
-      <div class="fault-desc">${t('d_ok_desc')}</div>
-    </div>`;
-    badge.style.display='block';
-    badge.style.background='#dcfce7'; badge.style.color='#14532d';
-    badge.textContent='✓ Systém OK';
-    return;
-  }
-
-  const critCount=faults.filter(f=>f.severity==='CRITICAL').length;
-  const warnCount=faults.filter(f=>f.severity==='WARNING').length;
-  badge.style.display='block';
-  if(critCount>0){badge.style.background='#fee2e2';badge.style.color='#991b1b';badge.textContent=`✗ ${critCount} KRITICKÁ`+(critCount>1?'+'+(warnCount+faults.filter(f=>f.severity==='INFO').length)+' ďalších':'');}
-  else if(warnCount>0){badge.style.background='#fef3c7';badge.style.color='#92400e';badge.textContent=`⚠ ${warnCount} upozornení`;}
-  else {badge.style.background='#eff6ff';badge.style.color='#1e40af';badge.textContent='ℹ Informácie';}
-
-  out.innerHTML = faults.map(f=>{
-    const sevClass=f.severity==='CRITICAL'?'fault-critical':f.severity==='WARNING'?'fault-warning':'fault-info';
-    const badgeClass=f.severity==='CRITICAL'?'fb-critical':f.severity==='WARNING'?'fb-warning':'fb-info';
-    const sevLabel=f.severity==='CRITICAL'?'KRITICKÁ':f.severity==='WARNING'?'VAROVANIE':'INFO';
-    return `<div class="fault-item ${sevClass}">
-      <div class="fault-head">
-        <span class="fault-badge ${badgeClass}">${sevLabel}</span>
-        <span class="fault-name">${f.name}</span>
-        <span class="fault-conf">${f.confidence}% istota</span>
-      </div>
-      <div class="fault-desc">${f.desc}</div>
-      <div class="fault-causes"><strong>${t('cause_lbl')}</strong> ${f.causes.join(' · ')}</div>
-      <div style="margin-top:5px">
-        <strong style="font-size:9.5px;color:#6b7280">${t('action_lbl')}</strong>
-        ${f.actions.map(a=>`<span class="fault-action">${a}</span>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  HEADER EDITOR
-// ═══════════════════════════════════════════════════════════════════
-let headerData = {
-  title: 'AES — Chladiaci Okruh Analyzátor',
-  sub: 'Diagnostika reálneho chladiaceho okruhu · P-H diagram · CoolProp | AES s.r.o. — Advanced Energy Systems',
-  footer: 'AES s.r.o. — Advanced Energy Systems | www.aes-slovakia.eu | Farská 50, 949 01 Nitra, Slovakia',
-  logoDataUrl: null
-};
-
-function openHeaderEditor(){
-  if(!isAdmin){
-    const btn = document.getElementById('tbEditBtn');
-    if(btn){ btn.textContent='🔒 Len Admin'; setTimeout(()=>btn.textContent='✏️ Upraviť hlavičku',2000); }
-    return;
-  }
-  document.getElementById('hdr_title').value  = headerData.title;
-  document.getElementById('hdr_sub').value    = headerData.sub;
-  document.getElementById('hdr_footer').value = headerData.footer;
-  updateLogoPreview();
-  document.getElementById('headerModal').style.display='flex';
-}
-function closeHeaderEditor(){ document.getElementById('headerModal').style.display='none'; }
-function saveHeader(){
-  headerData.title  = document.getElementById('hdr_title').value.trim() || headerData.title;
-  headerData.sub    = document.getElementById('hdr_sub').value.trim();
-  headerData.footer = document.getElementById('hdr_footer').value.trim();
-  applyHeader();
-  closeHeaderEditor();
-}
-function applyHeader(){
-  document.getElementById('tbTitleEl').textContent = headerData.title;
-  document.getElementById('tbSubEl').textContent   = headerData.sub;
-  const wrap = document.getElementById('tbLogoInner');
-  if(headerData.logoDataUrl){
-    wrap.innerHTML=`<img src="${headerData.logoDataUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:8px">`;
-    wrap.style.background='#fff';
-  } else {
-    wrap.innerHTML='🔬';
-    wrap.style.background='';
-  }
-}
-function handleLogoUpload(e){
-  const file=e.target.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{ headerData.logoDataUrl=ev.target.result; updateLogoPreview(); };
-  reader.readAsDataURL(file);
-}
-function clearLogo(){
-  headerData.logoDataUrl=null;
-  document.getElementById('logoFileInput').value='';
-  updateLogoPreview();
-}
-function updateLogoPreview(){
-  const prev=document.getElementById('logoPreview');
-  if(headerData.logoDataUrl){
-    prev.innerHTML=`<img src="${headerData.logoDataUrl}" style="width:76px;height:76px;object-fit:contain;border-radius:8px">`;
-  } else {
-    prev.innerHTML='<div class="lu-hint">📷<br>Kliknite pre<br>nahranie loga</div>';
-  }
-}
-
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHeaderEditor(); });
-
-
-// ═══════════════════════════════════════════════════════════════════
-//  DISPLAY COOLING CAPACITY
-// ═══════════════════════════════════════════════════════════════════
-function displayCapacity(r){
-  const card = document.getElementById('capacityCard');
-  const kpiGrid = document.getElementById('capKpiGrid');
-  if(!card || !kpiGrid){ console.error('[AES] displayCapacity: missing elements'); return; }
-  const capBody = document.getElementById('capBody');
-  const specBody = document.getElementById('specBody');
-  const badge = document.getElementById('capMethodBadge');
-
-  // ── Specific values — always available ──
-  specBody.innerHTML = [
-    {n:'Merný chladiaci výkon q₀', v:r.q0.toFixed(2), u:'kJ/kg'},
-    {n:'Merná práca kompresora w',  v:r.w.toFixed(2),  u:'kJ/kg'},
-    {n:'Merný výkon kondenzátora q_c', v:r.qc.toFixed(2), u:'kJ/kg'},
-    {n:'COP (termodynamický)',      v:r.COP.toFixed(3), u:'W/W'},
-    {n:'Izentropická účinnosť η_is', v:(r.eta_is*100).toFixed(1), u:'%'},
-  ].map(d=>`<tr><td>${d.n}</td><td class="num">${d.v}</td><td class="unit">${d.u}</td></tr>`).join('');
-
-  if(!r.mdot || r.mdot <= 0){
-    // No mass flow — show only specific values, prompt user
-    kpiGrid.innerHTML = `
-      <div style="grid-column:1/-1;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:14px 16px;text-align:center;color:#92400e;font-size:11px">
-        <div style="font-size:20px;margin-bottom:6px">⚡</div>
-        <strong>Pre výpočet absolútneho výkonu (kW)</strong> zadajte aspoň jednu z možností:<br>
-        <strong>A</strong> — Prúd [A] + Napätie [V] alebo Príkon [W] &nbsp;|&nbsp; <strong>B</strong> — Zdvihový objem kompresora [cm³] + RPM
-      </div>`;
-    capBody.innerHTML = '';
-    badge.textContent = 'Len mernoenergetické hodnoty';
-    badge.style.background = '#fef3c7';
-    badge.style.color = '#92400e';
-    return;
-  }
-
-  // ── Mass flow known → full results ──
-  const mdot_gs  = r.mdot * 1000;          // g/s
-  const mdot_kgh = r.mdot * 3600;          // kg/h
-  const Q0_kW    = r.Q_evap / 1000;
-  const Qc_kW    = r.Q_cond / 1000;
-  const Pth_kW   = r.mdot * r.w;           // theoretical compressor power [kW]
-  const EER      = r.COP_real || r.COP;
-
-  badge.textContent = r.capMethod || 'Vypočítané';
-  badge.style.background = '#dcfce7';
-  badge.style.color = '#14532d';
-
-  // Big KPIs
-  kpiGrid.innerHTML = [
-    {lbl:'Chladiaci výkon Q₀', val:Q0_kW.toFixed(2), u:'kW', cls:'hl-green', big:true},
-    {lbl:'Výkon kondenzátora Q_c', val:Qc_kW.toFixed(2), u:'kW', cls:'hl-orange', big:true},
-    {lbl:'Prietok chladiva ṁ', val:mdot_gs.toFixed(2), u:'g/s', cls:'hl-blue'},
-    {lbl:'ṁ', val:mdot_kgh.toFixed(1), u:'kg/h', cls:''},
-    {lbl:'COP / EER', val:EER.toFixed(3), u:'W/W', cls:'hl-green'},
-    {lbl:'Teor. príkon kompresora', val:(Pth_kW*1000).toFixed(0), u:'W', cls:''},
-  ].map(k=>`<div class="kpi ${k.cls}">
-    <div class="kpi-lbl">${k.lbl}</div>
-    <div><span class="kpi-val" style="${k.big?'font-size:22px':''}">${k.val}</span><span class="kpi-u"> ${k.u}</span></div>
-  </div>`).join('');
-
-  // Detail table
-  let rows = [
-    {n:'Chladiaci výkon Q₀',          v:Q0_kW.toFixed(3),      u:'kW'},
-    {n:'Výkon kondenzátora Q_c',       v:Qc_kW.toFixed(3),      u:'kW'},
-    {n:'Hmotnostný prietok ṁ',         v:mdot_gs.toFixed(3),    u:'g/s'},
-    {n:'Hmotnostný prietok ṁ',         v:mdot_kgh.toFixed(2),   u:'kg/h'},
-    {n:'Teor. príkon kompresora',      v:(Pth_kW).toFixed(3),   u:'kW'},
+  // Cycle lines
+  const cycleSegs=[
+    {from:[r.h1,r.P_evap],to:[r.h2,r.P_cond],color:'#f97316',width:2.5,label:'1→2'},
+    {from:[r.h2,r.P_cond],to:[r.h3,r.P_cond],color:'#dc2626',width:2.5,label:'2→3'},
+    {from:[r.h3,r.P_cond],to:[r.h4,r.P_evap],color:'#7c3aed',width:2.5,label:'3→4'},
+    {from:[r.h4,r.P_evap],to:[r.h1,r.P_evap],color:'#2563eb',width:2.5,label:'4→1'},
   ];
-  if(r.P_elec_used){
-    rows.push({n:'Elektrický príkon (meraný)', v:(r.P_elec_used/1000).toFixed(3), u:'kW'});
-    rows.push({n:'COP reálny (Q₀/P_el)',       v:(r.Q_evap/r.P_elec_used).toFixed(3), u:'W/W'});
-    rows.push({n:'Elektrická účinnosť motora', v:((Pth_kW*1000)/r.P_elec_used*100).toFixed(1), u:'%'});
-  }
-  if(r.Q_evap > 0){
-    rows.push({n:'Q₀ na jednotku prietoku', v:(Q0_kW/mdot_gs*1000).toFixed(1), u:'W/(g/s)'});
-  }
-  capBody.innerHTML = rows.map(d=>`<tr><td>${d.n}</td><td class="num">${d.v}</td><td class="unit">${d.u}</td></tr>`).join('');
+  cycleSegs.forEach(seg=>{
+    ctx.strokeStyle=seg.color;ctx.lineWidth=seg.width;
+    ctx.beginPath();ctx.moveTo(xH(seg.from[0]),yP(seg.from[1]));ctx.lineTo(xH(seg.to[0]),yP(seg.to[1]));ctx.stroke();
+  });
+
+  // State points
+  const pts=[
+    {h:r.h1,P:r.P_evap,label:'1',color:'#2563eb'},
+    {h:r.h2,P:r.P_cond,label:'2',color:'#f97316'},
+    {h:r.h3,P:r.P_cond,label:'3',color:'#dc2626'},
+    {h:r.h4,P:r.P_evap,label:'4',color:'#7c3aed'},
+  ];
+  pts.forEach(pt=>{
+    const x=xH(pt.h),y=yP(pt.P);
+    ctx.fillStyle='#0f172a';ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=pt.color;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font='bold 9px Inter,Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(pt.label,x,y);
+    ctx.fillStyle='#e2e8f0';ctx.font='10px Inter,Arial';ctx.textBaseline='bottom';
+    ctx.fillText(`${pt.h.toFixed(0)} kJ/kg`,x,y-10);
+  });
 }
 
-// ═══════════════════════════════════════════════════════════════════
-//  DIAGRAM LIVE VALUES
-// ═══════════════════════════════════════════════════════════════════
-function svgTspan(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
-function svgShow(id, vis){ const el=document.getElementById(id); if(el) el.setAttribute('display', vis?'':'none'); }
-
-function updateDiagramValues(){
-  const punit = getPUnit();
-  const pSuffix = punit==='bara' ? ' bar(a)' : ' bar(g)';
-  const fmt = v => isNaN(v) ? '—' : v.toFixed(1);
-
-  const T1 = parseFloat(document.getElementById('T_suc').value);
-  const P1 = parseFloat(document.getElementById('P_suc').value);
-  const T2 = parseFloat(document.getElementById('T_disch').value);
-  const P2 = parseFloat(document.getElementById('P_disch').value);
-  const T3 = parseFloat(document.getElementById('T_liq').value);
-  const T4 = parseFloat(document.getElementById('T_evap_in').value);
-
-  svgTspan('dv_T1', isNaN(T1)?'—':T1.toFixed(1));
-  svgTspan('dv_P1', isNaN(P1)?'—':(P1.toFixed(2)+pSuffix));
-  svgTspan('dv_T2', isNaN(T2)?'—':T2.toFixed(1));
-  svgTspan('dv_P2', isNaN(P2)?'—':(P2.toFixed(2)+pSuffix));
-  svgTspan('dv_T3', isNaN(T3)?'—':T3.toFixed(1));
-  svgTspan('dv_T4', isNaN(T4)?'— °C':(T4.toFixed(1)+' °C'));
+// ════════════════════════════════
+//  SAVE / LOAD PROJECT
+// ════════════════════════════════
+function saveProject(){
+  const data={
+    version:'1.0',
+    project:{name:g('proj_name')?g('proj_name').value:'',customer:g('proj_customer')?g('proj_customer').value:'',designer:g('proj_designer')?g('proj_designer').value:'',date:g('proj_date')?g('proj_date').value:''},
+    conditions:{Te_sat:g('Te_sat')?g('Te_sat').value:'',Tc_sat:g('Tc_sat')?g('Tc_sat').value:'',SH_val:g('SH_val')?g('SH_val').value:'',SC_val:g('SC_val')?g('SC_val').value:'',T_amb:g('T_amb')?g('T_amb').value:'',Q_req:g('Q_req')?g('Q_req').value:''},
+    refrigerant:g('ref_sel')?g('ref_sel').value:'R410A',
+    compressor:selectedComp,
+    evaporator:selectedEvap,
+    condenser:selectedCond,
+    piping:{ps_len:g('ps_len')?g('ps_len').value:'',ps_dia:g('ps_dia')?g('ps_dia').value:'',pd_len:g('pd_len')?g('pd_len').value:'',pd_dia:g('pd_dia')?g('pd_dia').value:'',pl_len:g('pl_len')?g('pl_len').value:'',pl_dia:g('pl_dia')?g('pl_dia').value:''},
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=(data.project.name||'AES_Project')+'_design.json';a.click();
+}
+function loadProject(evt){
+  const f=evt.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      window._loadedProject=d;
+      // Restore state
+      if(d.compressor)selectedComp=d.compressor;
+      if(d.evaporator)selectedEvap=d.evaporator;
+      if(d.condenser)selectedCond=d.condenser;
+      goStep(1);
+      setTimeout(()=>{
+        if(d.project){['proj_name','proj_customer','proj_designer','proj_date'].forEach(k=>{const el=g(k);if(el&&d.project[k.replace('proj_','')])el.value=d.project[k.replace('proj_','')];});}
+        if(d.refrigerant){const el=g('ref_sel');if(el)el.value=d.refrigerant;}
+        updateProjTitle();updateSummary();
+      },50);
+      alert(`✅ Project loaded: ${d.project?.name||'untitled'}`);
+    }catch(ex){alert('❌ Cannot load project file: '+ex.message);}
+  };
+  reader.readAsText(f);
+  evt.target.value='';
 }
 
-function updateDiagramCalc(r){
-  // SH, Te near Pt 1
-  svgTspan('dv_SH', r.SH.toFixed(1));
-  svgTspan('dv_Te', r.Te_sat.toFixed(1));
-  svgShow('dv_SH_row', true);
-  // Tc near Pt 2
-  svgTspan('dv_Tc', r.Tc_sat.toFixed(1));
-  svgShow('dv_Tc_row', true);
-  // SC near Pt 3
-  svgTspan('dv_SC', r.SC.toFixed(1));
-  svgShow('dv_SC_row', true);
-  // x4 near Pt 4
-  svgTspan('dv_x4', (r.x4*100).toFixed(1));
-  svgShow('dv_x4_row', true);
-}
-
-function resetDiagramCalc(){
-  svgShow('dv_SH_row', false);
-  svgShow('dv_Tc_row', false);
-  svgShow('dv_SC_row', false);
-  svgShow('dv_x4_row', false);
-}
-
-// ═══════════════════════════════════════════════════════════════════
+// ════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════════════════════════
-function calcPower(){
-  const I = parseFloat(document.getElementById('I_meas').value);
-  const U = parseFloat(document.getElementById('U_meas').value);
-  const pField = document.getElementById('P_comp');
-  if(!isNaN(I) && !isNaN(U) && I > 0 && U > 0){
-    const P = Math.round(I * U);
-    pField.value = P;
-    pField.style.color = '#059669';
-    pField.style.background = '#f0fdf4';
-  } else {
-    // Only clear if it was auto-set (green), not manually entered
-    if(pField.style.color === 'rgb(5, 150, 105)' || pField.style.color === '#059669'){
-      pField.value = '';
-      pField.style.color = '';
-      pField.style.background = '';
-    }
-  }
-}
-
+// ════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>{
-  setLang('sk');
-  updatePressureLabels();
-  // Wire live diagram updates to all input fields
-  ['T_suc','P_suc','T_disch','P_disch','T_liq','T_evap_in'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.addEventListener('input', updateDiagramValues);
-  });
-  document.querySelectorAll('input[name="punit"]').forEach(r=>{
-    r.addEventListener('change', updateDiagramValues);
-  });
-  updateDiagramValues();
+  updateNavButtons();
 });
 </script>
 </body>
