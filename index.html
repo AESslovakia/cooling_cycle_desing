@@ -1415,21 +1415,6 @@ function displayResults(r){
     `<tr><td>${d.name}</td><td class="num">${d.val}</td><td class="unit">${d.unit}</td><td>${d.ev}</td></tr>`
   ).join('');
 
-  // Mass flow section
-  const mfSection = document.getElementById('massFlowSection');
-  const mfGrid = document.getElementById('massFlowGrid');
-  if(r.mdot){
-    mfSection.style.display='block';
-    const P_used = r.P_comp || (r.I_meas*r.U_meas);
-    mfGrid.innerHTML=[
-      {l:activeLang==='sk'?'Prietok chladiva':'Mass flow', v:(r.mdot*1000).toFixed(3), u:'g/s'},
-      {l:activeLang==='sk'?'Chladiaci výkon Q₀':'Cooling capacity Q₀', v:(r.Q_evap/1000).toFixed(2), u:'kW'},
-      {l:activeLang==='sk'?'Výkon kondenzátora Q_c':'Condenser capacity Q_c', v:(r.Q_cond/1000).toFixed(2), u:'kW'},
-      {l:'COP (reálny)', v:r.COP_real.toFixed(3), u:'W/W'},
-    ].map(e=>`<div class="ev"><div><div class="ev-lbl">${e.l}</div></div><div><span class="ev-val">${e.v}</span> <span class="ev-u">${e.u}</span></div></div>`).join('');
-  } else {
-    mfSection.style.display='none';
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
