@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AES — Chladiaci Okruh Analyzátor v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',Arial,sans-serif;font-size:13px;color:#1e2433;background:#f0f3f9;padding:16px;min-height:100vh}
+
+/* ── PIN ── */
+#pinScreen{position:fixed;inset:0;background:linear-gradient(135deg,#0a1628 0%,#0d1f3c 60%,#122a52 100%);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
+.pin-box{background:#fff;border-radius:20px;padding:40px 44px;width:100%;max-width:380px;box-shadow:0 24px 80px rgba(0,0,0,.5);text-align:center}
+.pin-logo{width:70px;height:70px;background:linear-gradient(135deg,#0d1f3c,#1a4db5);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px}
+.pin-title{font-size:20px;font-weight:800;color:#0d1f3c;margin-bottom:4px}
+.pin-sub{font-size:12px;color:#7a8299;margin-bottom:26px}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin-bottom:20px}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2.5px solid #c8d0e0;transition:all .2s}
+.pin-dot.filled{background:#2563eb;border-color:#2563eb;transform:scale(1.15)}
+.pin-btn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.pin-btn{padding:16px;border:1.5px solid #e4e9f4;border-radius:12px;background:#fafbfd;font-size:18px;font-weight:700;color:#1e2433;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.pin-btn:hover{background:#eef3ff;border-color:#2563eb}
+.pin-btn:active{transform:scale(.96)}
+.pin-btn.wide{grid-column:2/-1}
+.pin-err{color:#E24B4A;font-size:12px;font-weight:600;min-height:18px;margin-top:4px}
+
+/* ── APP LAYOUT ── */
+.app{max-width:1420px;margin:0 auto}
+.topbar{background:linear-gradient(135deg,#0a1628 0%,#0d1f3c 60%,#122a52 100%);border-radius:14px;margin-bottom:18px;overflow:hidden;display:flex;align-items:stretch;box-shadow:0 4px 24px rgba(13,31,60,.25)}
+.tb-logo{width:86px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px 0 0 10px}
+.tb-logo-inner{width:58px;height:58px;background:linear-gradient(135deg,#0d1f3c,#1a4db5);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;font-weight:800}
+.tb-info{flex:1;padding:14px 20px;display:flex;flex-direction:column;justify-content:center}
+.tb-title{font-size:15px;font-weight:700;color:#fff}
+.tb-sub{font-size:10.5px;color:#7aa3cc;margin-top:3px}
+.tb-right{padding:0 20px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.status-badge{font-size:9.5px;font-weight:700;letter-spacing:.8px;padding:5px 12px;border-radius:20px;white-space:nowrap;border:1px solid;display:flex;align-items:center;gap:6px}
+.st-ok{background:rgba(16,185,129,.15);color:#34d399;border-color:rgba(16,185,129,.35)}
+.st-warn{background:rgba(234,179,8,.15);color:#fbbf24;border-color:rgba(234,179,8,.35)}
+.st-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+.tb-edit-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.tb-edit-btn:hover{background:rgba(255,255,255,.22)}
+.admin-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.4);border-radius:5px;font-size:9.5px;font-weight:700;color:#fbbf24;font-family:'Inter',sans-serif;flex-shrink:0}
+
+/* ── LANG BAR ── */
+.lang-bar{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:12px}
+.lang-label{font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;margin-right:4px}
+.lang-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid #e4e9f4;border-radius:8px;background:#fafbfd;cursor:pointer;font-size:11px;font-weight:700;color:#7a8299;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.lang-btn:hover{border-color:#93b4f0;background:#f0f5ff;color:#2563eb}
+.lang-btn.active{border-color:#2563eb;background:#eef3ff;color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+
+/* ── CARDS ── */
+.card{background:#fff;border:1px solid #e4e9f4;border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-header{display:flex;align-items:center;gap:9px;margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid #f0f3f9}
+.card-num{width:26px;height:26px;background:linear-gradient(135deg,#2563eb,#1a4db5);color:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.card-num.green{background:linear-gradient(135deg,#059669,#047857)}
+.card-num.orange{background:linear-gradient(135deg,#ea580c,#c2410c)}
+.card-num.purple{background:linear-gradient(135deg,#7c3aed,#5b21b6)}
+.card-title{font-size:13.5px;font-weight:700;color:#0d1f3c}
+.card-hint{font-size:9.5px;color:#9aa3b8;margin-left:auto;padding:3px 8px;background:#f8faff;border:1px solid #e4e9f4;border-radius:5px;white-space:nowrap}
+
+/* ── MAIN GRID ── */
+.main-layout{display:grid;grid-template-columns:1fr 460px;gap:14px;align-items:start}
+@media(max-width:1000px){.main-layout{grid-template-columns:1fr}}
+
+/* ── FORM ELEMENTS ── */
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:9.5px;color:#7a8299;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.f input,.f select{width:100%;padding:8px 10px;border:1.5px solid #e4e9f4;border-radius:8px;font-size:12px;color:#1e2433;font-family:'Inter',sans-serif;background:#fafbfd;transition:border-color .15s,box-shadow .15s}
+.f input:focus,.f select:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);background:#fff}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.sec-label{font-size:9px;font-weight:700;color:#2563eb;letter-spacing:2px;text-transform:uppercase;margin:14px 0 8px;display:flex;align-items:center;gap:8px}
+.sec-label::after{content:'';flex:1;height:1px;background:#e4e9f4}
+.sec-label.green{color:#059669}
+.sec-label.orange{color:#ea580c}
+.sec-label.purple{color:#7c3aed}
+.sec-label.gray{color:#6b7280}
+
+/* ── BLOCK DIAGRAM ── */
+.circuit-svg-wrap{background:#f8faff;border:1.5px solid #e4e9f4;border-radius:10px;overflow:hidden;margin-bottom:16px}
+.circuit-svg-wrap svg{display:block;width:100%;height:auto}
+
+/* ── POINT INPUT PANELS ── */
+.pt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.pt-panel{background:#fafbfd;border:1.5px solid #e4e9f4;border-radius:10px;padding:12px 14px}
+.pt-panel.pt1{border-color:#93c5fd;background:#eff6ff}
+.pt-panel.pt2{border-color:#fca5a5;background:#fff1f2}
+.pt-panel.pt3{border-color:#6ee7b7;background:#ecfdf5}
+.pt-panel.pt4{border-color:#c4b5fd;background:#f5f3ff}
+.pt-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pt-circle{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;color:#fff}
+.pt-circle.c1{background:#2563eb}
+.pt-circle.c2{background:#dc2626}
+.pt-circle.c3{background:#059669}
+.pt-circle.c4{background:#7c3aed}
+.pt-name{font-size:11px;font-weight:700;color:#0d1f3c}
+.pt-sub{font-size:9px;color:#9aa3b8}
+
+/* ── BUTTONS ── */
+.calc-btn{width:100%;padding:15px;background:linear-gradient(135deg,#2563eb,#1a4db5);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:'Inter',sans-serif;box-shadow:0 4px 16px rgba(37,99,235,.3);transition:all .2s}
+.calc-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.4)}
+.calc-btn:disabled{background:#b0bfd8;cursor:not-allowed;transform:none;box-shadow:none}
+.reset-btn{width:100%;padding:10px;background:#fff;border:1.5px solid #e4e9f4;color:#7a8299;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.reset-btn:hover{border-color:#E24B4A;color:#E24B4A}
+
+/* ── RESULTS ── */
+.res-state-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.res-state-pt{border-radius:9px;padding:11px 12px}
+.rs1{background:#eff6ff;border:1px solid #93c5fd}
+.rs2{background:#fff1f2;border:1px solid #fca5a5}
+.rs3{background:#ecfdf5;border:1px solid #6ee7b7}
+.rs4{background:#f5f3ff;border:1px solid #c4b5fd}
+.rs-ptnum{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.rs1 .rs-ptnum{color:#2563eb}
+.rs2 .rs-ptnum{color:#dc2626}
+.rs3 .rs-ptnum{color:#059669}
+.rs4 .rs-ptnum{color:#7c3aed}
+.rs-row{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:#4b5563;padding:1px 0}
+.rs-val{font-weight:700;color:#0d1f3c;font-size:11.5px}
+
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.kpi{background:#f8faff;border:1px solid #e4e9f4;border-radius:9px;padding:11px;text-align:center}
+.kpi.hl-blue{border-color:#93c5fd;background:#eff6ff}
+.kpi.hl-green{border-color:#6ee7b7;background:#ecfdf5}
+.kpi.hl-orange{border-color:#fed7aa;background:#fff7ed}
+.kpi-lbl{font-size:8.5px;color:#9aa3b8;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.kpi-val{font-size:18px;font-weight:800;color:#0d1f3c}
+.kpi-u{font-size:9.5px;color:#9aa3b8;margin-left:2px}
+.kpi.hl-blue .kpi-val{color:#2563eb}
+.kpi.hl-green .kpi-val{color:#059669}
+.kpi.hl-orange .kpi-val{color:#ea580c}
+
+.extra-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.ev{background:#f8faff;border:1px solid #e4e9f4;border-radius:8px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center}
+.ev-lbl{font-size:10px;color:#7a8299;font-weight:600}
+.ev-val{font-size:12px;font-weight:700;color:#0d1f3c}
+.ev-u{font-size:9px;color:#9aa3b8}
+
+/* ── P-H DIAGRAM ── */
+.ph-wrap{background:#fafbfd;border:1.5px solid #e4e9f4;border-radius:10px;overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center}
+.ph-placeholder{text-align:center;color:#9aa3b8;padding:40px 20px}
+.ph-placeholder .ph-icon{font-size:40px;margin-bottom:10px}
+.ph-placeholder p{font-size:12px}
+
+/* ── DIAGNOSTICS ── */
+.diag-empty{text-align:center;padding:30px;color:#9aa3b8}
+.diag-empty span{font-size:32px;display:block;margin-bottom:8px}
+.fault-item{border-radius:10px;padding:12px 14px;margin-bottom:8px;border:1.5px solid}
+.fault-critical{background:#fff1f2;border-color:#fca5a5}
+.fault-warning{background:#fffbeb;border-color:#fcd34d}
+.fault-info{background:#f0fdf4;border-color:#a7f3d0}
+.fault-ok{background:#f0fdf4;border-color:#6ee7b7}
+.fault-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.fault-badge{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 7px;border-radius:4px;text-transform:uppercase}
+.fb-critical{background:#fca5a5;color:#7f1d1d}
+.fb-warning{background:#fde68a;color:#78350f}
+.fb-info{background:#a7f3d0;color:#064e3b}
+.fault-name{font-size:12px;font-weight:700;color:#0d1f3c}
+.fault-conf{font-size:9px;color:#9aa3b8;margin-left:auto;font-weight:600}
+.fault-desc{font-size:11px;color:#4b5563;margin-bottom:6px;line-height:1.5}
+.fault-causes{font-size:10px;color:#6b7280;margin-bottom:4px}
+.fault-causes strong{color:#4b5563}
+.fault-action{display:inline-block;font-size:9.5px;background:#fff;border:1px solid #e4e9f4;border-radius:5px;padding:2px 8px;margin:2px 2px 2px 0;color:#2563eb;font-weight:600}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.modal-box{background:#fff;border-radius:16px;width:100%;max-width:500px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.4);overflow:hidden}
+.modal-head{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid #f0f3f9;flex-shrink:0}
+.modal-head-icon{width:34px;height:34px;background:linear-gradient(135deg,#2563eb,#1a4db5);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.modal-title{font-size:15px;font-weight:700;color:#0d1f3c;flex:1}
+.modal-close{width:30px;height:30px;border:none;background:#f0f3f9;border-radius:7px;font-size:16px;cursor:pointer;color:#7a8299;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.modal-close:hover{background:#fee2e2;color:#E24B4A}
+.modal-body{flex:1;overflow-y:auto;padding:18px 22px}
+.modal-foot{padding:14px 22px;border-top:1px solid #f0f3f9;display:flex;gap:8px;align-items:center;flex-shrink:0;background:#fafbfd}
+.save-btn{padding:8px 20px;background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-left:auto}
+.cancel-btn{padding:8px 16px;background:#fff;border:1.5px solid #e4e9f4;color:#7a8299;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.cancel-btn:hover{border-color:#E24B4A;color:#E24B4A}
+.logo-upload-area{width:80px;height:80px;border:2px dashed #93b4f0;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;background:#f8faff;flex-shrink:0}
+.logo-upload-area:hover{border-color:#2563eb;background:#eef3ff}
+.lu-hint{font-size:9px;color:#9aa3b8;text-align:center;padding:4px;line-height:1.3}
+
+/* ── INFO BAR ── */
+.info-bar{background:#0d1f3c;border:1px solid #1e3a5f;border-radius:10px;padding:10px 16px;margin-bottom:14px;font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:10px;line-height:1.5}
+.info-bar strong{color:#7dd3fc}
+.info-ok{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:9px 14px;margin-bottom:14px;font-size:11px;color:#065f46;display:flex;align-items:center;gap:8px}
+
+/* ── LEGEND ── */
+.ph-legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 12px;font-size:10px;color:#7a8299;border-top:1px solid #e4e9f4}
+.ph-leg-item{display:flex;align-items:center;gap:5px}
+.ph-leg-line{width:20px;height:3px;border-radius:2px}
+
+/* ── COMPACT RESULT TABLE ── */
+.res-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:10px}
+.res-table th{background:#f0f3f9;color:#7a8299;font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding:6px 10px;text-align:left}
+.res-table td{padding:6px 10px;border-bottom:1px solid #f8faff;vertical-align:middle}
+.res-table tr:last-child td{border-bottom:none}
+.res-table tr:hover td{background:#fafbfd}
+.res-table .num{text-align:right;font-weight:700;color:#0d1f3c;font-variant-numeric:tabular-nums}
+.res-table .unit{text-align:left;color:#9aa3b8;font-size:10px;padding-left:4px}
+.res-table .row-ok td{background:#f0fdf8}
+.res-table .row-warn td{background:#fffbeb}
+.res-table .row-crit td{background:#fff1f2}
+</style>
+</head>
+<body>
+
+<!-- ═══ PIN SCREEN ═══ -->
+<div id="pinScreen">
+  <div class="pin-box">
+    <div class="pin-logo">🔬</div>
+    <div class="pin-title">AES Circuit Analyzer</div>
+    <div class="pin-sub" id="pinSubTxt">Zadajte PIN pre prístup · v1.0</div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-btn-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn" style="grid-column:1" onclick="pinPress('0')">0</button>
+      <button class="pin-btn wide" onclick="pinBack()">⌫ Vymazať</button>
+    </div>
+    <div class="pin-err" id="pinErr"></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div class="app" id="appMain" style="display:none">
+
+  <!-- Language bar -->
+  <div class="lang-bar">
+    <span class="lang-label">Language</span>
+    <button class="lang-btn active" id="lb_sk" onclick="setLang('sk')"><span>🇸🇰</span> Slovensky</button>
+    <button class="lang-btn" id="lb_en" onclick="setLang('en')"><span>🇬🇧</span> English</button>
+  </div>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="tb-logo" onclick="openHeaderEditor()" title="Kliknite pre úpravu hlavičky" style="cursor:pointer">
+      <div class="tb-logo-inner" id="tbLogoInner">🔬</div>
+    </div>
+    <div class="tb-info" onclick="openHeaderEditor()" style="cursor:pointer">
+      <div class="tb-title" id="tbTitleEl">AES — Chladiaci Okruh Analyzátor</div>
+      <div class="tb-sub" id="tbSubEl">Diagnostika reálneho chladiaceho okruhu · P-H diagram · CoolProp | AES s.r.o. — Advanced Energy Systems</div>
+    </div>
+    <div class="tb-right">
+      <div class="status-badge st-warn" id="cpBadge"><span class="st-dot"></span>CoolProp načítava...</div>
+      <span class="admin-badge" id="adminBadge" style="display:none">⚡ ADMIN</span>
+      <button class="tb-edit-btn" id="tbEditBtn" onclick="openHeaderEditor()">✏️ Upraviť hlavičku</button>
+    </div>
+  </div>
+
+  <!-- CoolProp info bar -->
+  <div class="info-bar" id="cpInfoBar">
+    <span style="font-size:16px">⏳</span>
+    <span id="cpInfoTxt"><strong>CoolProp WASM</strong> sa načítava z lokálneho súboru <strong>coolprop.wasm</strong>. Kalkulácia bude dostupná po dokončení načítania.</span>
+  </div>
+
+  <!-- Main layout -->
+  <div class="main-layout">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div>
+
+      <!-- Card 1: Refrigerant setup -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-num">1</div>
+          <div class="card-title" data-i18n="card1_title">Chladivo a nastavenie</div>
+          <div class="card-hint" data-i18n="card1_hint">Povinné nastavenie</div>
+        </div>
+        <div class="g2">
+          <div class="f">
+            <label data-i18n="lbl_refrigerant">Chladivo</label>
+            <select id="refrigerantSel" onchange="onRefrigChange()">
+              <option value="R134a">R134a (HFC)</option>
+              <option value="R404A">R404A (HFC blend)</option>
+              <option value="R410A" selected>R410A (HFC)</option>
+              <option value="R407C">R407C (HFC blend)</option>
+              <option value="R22">R22 (HCFC)</option>
+              <option value="R290">R290 – Propán</option>
+              <option value="R600a">R600a – Izobután</option>
+              <option value="R32">R32 (HFC)</option>
+              <option value="R448A">R448A (HFO blend)</option>
+              <option value="R449A">R449A (HFO blend)</option>
+              <option value="R717">R717 – Amoniak (NH3)</option>
+            </select>
+          </div>
+          <div class="f">
+            <label data-i18n="lbl_apptype">Typ aplikácie</label>
+            <select id="appType">
+              <option value="ac" data-i18n="app_ac">Klimatizácia (AC)</option>
+              <option value="ref_med" data-i18n="app_ref_med">Chladenie stredné (+5 až -15°C)</option>
+              <option value="ref_low" data-i18n="app_ref_low">Chladenie nízke (-15 až -40°C)</option>
+              <option value="hp" data-i18n="app_hp">Tepelné čerpadlo</option>
+            </select>
+          </div>
+        </div>
+        <div class="sec-label gray" data-i18n="sec_pressure_unit">Jednotka tlaku</div>
+        <div style="display:flex;gap:8px">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:600;color:#0d1f3c">
+            <input type="radio" name="punit" value="bara" checked onchange="updatePressureLabels()"> bar(a) – absolútny
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:600;color:#0d1f3c;margin-left:14px">
+            <input type="radio" name="punit" value="barg" onchange="updatePressureLabels()"> bar(g) – manometrický
+          </label>
+        </div>
+      </div>
+
+      <!-- Card 2: Block diagram + measured values -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-num" style="background:linear-gradient(135deg,#0d9488,#0f766e)">2</div>
+          <div class="card-title" data-i18n="card2_title">Bloková schéma — namerané hodnoty</div>
+        </div>
+
+        <!-- SVG Circuit Diagram – Kondenzátor HORE, Kompresor VPRAVO, Výparník DOLE, Exp. ventil VĽAVO -->
+        <div class="circuit-svg-wrap">
+          <svg id="circuitSvg" viewBox="0 0 660 330" xmlns="http://www.w3.org/2000/svg" style="background:linear-gradient(135deg,#f8faff,#f0f4ff)">
+
+            <!-- ══ HP / LP REGION LABELS ══ -->
+            <text x="330" y="17" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#dc2626" letter-spacing="1.5">HP — VYSOKÝ TLAK</text>
+            <text x="330" y="316" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#2563eb" letter-spacing="1.5">LP — NÍZKY TLAK</text>
+
+            <!-- ══ PIPE LOOP ══
+                 Flow: Pt1(bot-right) →UP→ Kompresor →UP→ Pt2(top-right)
+                       →LEFT→ Kondenzátor →LEFT→ Pt3(top-left)
+                       →DOWN→ Exp.ventil  →DOWN→ Pt4(bot-left)
+                       →RIGHT→ Výparník   →RIGHT→ Pt1
+            -->
+
+            <!-- RIGHT PIPE – LP suction (blue): Pt1(bot-right) up to compressor -->
+            <line x1="512" y1="218" x2="512" y2="252" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
+            <!-- RIGHT PIPE – HP discharge (red): compressor up to Pt2(top-right) -->
+            <line x1="512" y1="78" x2="512" y2="118" stroke="#fca5a5" stroke-width="5" stroke-linecap="round"/>
+
+            <!-- TOP PIPE – HP hot gas (red): Pt2(top-right) → Kondenzátor → Pt3(top-left) -->
+            <line x1="148" y1="78" x2="228" y2="78" stroke="#fca5a5" stroke-width="5" stroke-linecap="round"/>
+            <line x1="432" y1="78" x2="512" y2="78" stroke="#fca5a5" stroke-width="5" stroke-linecap="round"/>
+
+            <!-- LEFT PIPE – HP liquid (green): Pt3(top-left) down to exp.valve -->
+            <line x1="148" y1="78" x2="148" y2="118" stroke="#6ee7b7" stroke-width="5" stroke-linecap="round"/>
+            <!-- LEFT PIPE – LP two-phase (purple): exp.valve down to Pt4(bot-left) -->
+            <line x1="148" y1="218" x2="148" y2="252" stroke="#c4b5fd" stroke-width="5" stroke-linecap="round"/>
+
+            <!-- BOTTOM PIPE – LP evaporation (blue): Pt4(bot-left) → Výparník → Pt1(bot-right) -->
+            <line x1="148" y1="252" x2="228" y2="252" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
+            <line x1="432" y1="252" x2="512" y2="252" stroke="#93c5fd" stroke-width="5" stroke-linecap="round"/>
+
+            <!-- ══ FLOW ARROWS ══ -->
+            <!-- Right pipe UP (suction → compressor → discharge) -->
+            <polygon points="512,155 506.5,167 517.5,167" fill="#dc2626"/>
+            <!-- Top pipe LEFT (HP gas condensing → Pt3) -->
+            <polygon points="260,78 272,72.5 272,83.5" fill="#dc2626"/>
+            <!-- Left pipe DOWN (liquid → expansion → two-phase) -->
+            <polygon points="148,175 142.5,163 153.5,163" fill="#059669"/>
+            <!-- Bottom pipe RIGHT (two-phase evaporating → Pt1) -->
+            <polygon points="400,252 388,246.5 388,257.5" fill="#2563eb"/>
+
+            <!-- ══ COMPONENTS ══ -->
+
+            <!-- KONDENZÁTOR (TOP) -->
+            <rect x="228" y="28" width="204" height="60" rx="11" fill="#fff1f2" stroke="#fca5a5" stroke-width="2.5"/>
+            <text x="330" y="52" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="700" fill="#7f1d1d">☀ KONDENZÁTOR</text>
+            <text x="330" y="67" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" fill="#dc2626">Condenser</text>
+
+            <!-- KOMPRESOR (RIGHT) -->
+            <rect x="484" y="118" width="80" height="100" rx="11" fill="#eff6ff" stroke="#93c5fd" stroke-width="2.5"/>
+            <text x="524" y="153" text-anchor="middle" font-family="Inter,sans-serif" font-size="16">🔧</text>
+            <text x="524" y="170" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#1e3a5f">KOMPRESOR</text>
+            <text x="524" y="183" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="#3b82f6">Compressor</text>
+            <text x="524" y="196" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" fill="#93b4f0">↑ sanie  výtlak ↑</text>
+
+            <!-- VÝPARNÍK (BOTTOM) -->
+            <rect x="228" y="242" width="204" height="60" rx="11" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="2.5"/>
+            <text x="330" y="266" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#064e3b">❄ VÝPARNÍK</text>
+            <text x="330" y="281" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" fill="#059669">Evaporator</text>
+
+            <!-- EXP. VENTIL (LEFT) -->
+            <rect x="96" y="118" width="80" height="100" rx="11" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="2.5"/>
+            <text x="136" y="153" text-anchor="middle" font-family="Inter,sans-serif" font-size="16">🔩</text>
+            <text x="136" y="170" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#4c1d95">EXP. VENTIL</text>
+            <text x="136" y="183" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="#7c3aed">Exp. Valve</text>
+            <text x="136" y="196" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" fill="#a78bfa">h₃=h₄</text>
+
+            <!-- ══ MEASUREMENT POINT CIRCLES ══
+                 Pt1 = bot-right  (LP sanie),   Pt2 = top-right (HP výtlak)
+                 Pt3 = top-left   (HP kvapalina), Pt4 = bot-left (LP 2-fáza) -->
+
+            <!-- Pt 1 – Bottom-Right: LP suction (Výparník → Kompresor) -->
+            <circle cx="512" cy="252" r="14" fill="#2563eb" stroke="#fff" stroke-width="3"/>
+            <text x="512" y="257" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">1</text>
+
+            <!-- Pt 2 – Top-Right: HP discharge (Kompresor → Kondenzátor) -->
+            <circle cx="512" cy="78" r="14" fill="#dc2626" stroke="#fff" stroke-width="3"/>
+            <text x="512" y="83" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">2</text>
+
+            <!-- Pt 3 – Top-Left: HP liquid (Kondenzátor → Exp.ventil) -->
+            <circle cx="148" cy="78" r="14" fill="#059669" stroke="#fff" stroke-width="3"/>
+            <text x="148" y="83" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">3</text>
+
+            <!-- Pt 4 – Bottom-Left: LP two-phase (Exp.ventil → Výparník) -->
+            <circle cx="148" cy="252" r="14" fill="#7c3aed" stroke="#fff" stroke-width="3"/>
+            <text x="148" y="257" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">4</text>
+
+            <!-- ══ LIVE VALUE DISPLAYS ══ -->
+
+            <!-- Pt 1 (bot-right) — values right side, aligned to right pipe -->
+            <g id="dv1_group">
+              <text x="530" y="246" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#2563eb">T₁ = <tspan id="dv_T1">—</tspan> °C</text>
+              <text x="530" y="259" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#2563eb">P₁ = <tspan id="dv_P1">—</tspan></text>
+              <text id="dv_SH_row" x="530" y="272" font-family="Inter,sans-serif" font-size="8.5" fill="#1d4ed8" display="none">SH=<tspan id="dv_SH" font-weight="700">—</tspan>K · Te=<tspan id="dv_Te" font-weight="700">—</tspan>°C</text>
+            </g>
+
+            <!-- Pt 2 (top-right) — values right side, top -->
+            <g id="dv2_group">
+              <text x="530" y="62" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#dc2626">T₂ = <tspan id="dv_T2">—</tspan> °C</text>
+              <text x="530" y="75" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#dc2626">P₂ = <tspan id="dv_P2">—</tspan></text>
+              <text id="dv_Tc_row" x="530" y="88" font-family="Inter,sans-serif" font-size="8.5" fill="#b91c1c" display="none">Tc = <tspan id="dv_Tc" font-weight="700">—</tspan> °C</text>
+            </g>
+
+            <!-- Pt 3 (top-left) — values left side -->
+            <g id="dv3_group">
+              <text x="130" y="62" text-anchor="end" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#059669">T₃ = <tspan id="dv_T3">—</tspan> °C</text>
+              <text id="dv_SC_row" x="130" y="75" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#047857" display="none">SC = <tspan id="dv_SC" font-weight="700">—</tspan> K</text>
+            </g>
+
+            <!-- Pt 4 (bot-left) — values left side, bottom -->
+            <g id="dv4_group">
+              <text x="130" y="246" text-anchor="end" font-family="Inter,sans-serif" font-size="9.5" font-weight="700" fill="#7c3aed">T₄ = <tspan id="dv_T4">—</tspan></text>
+              <text x="130" y="259" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#8b5cf6">2-fázová oblasť</text>
+              <text id="dv_x4_row" x="130" y="272" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#7c3aed" display="none">x₄ = <tspan id="dv_x4" font-weight="700">—</tspan> %</text>
+            </g>
+
+            <!-- Caption -->
+            <text x="330" y="326" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" fill="#b0bac8">Body 1–4 = merané miesta · hodnoty sa aktualizujú automaticky</text>
+          </svg>
+        </div>
+
+        <!-- Point input panels -->
+        <div class="pt-grid">
+          <!-- POINT 1 -->
+          <div class="pt-panel pt1">
+            <div class="pt-header">
+              <div class="pt-circle c1">1</div>
+              <div>
+                <div class="pt-name" data-i18n="pt1_name">Sanie kompresora</div>
+                <div class="pt-sub" data-i18n="pt1_sub">Výstup výparníka → vst. kompresora</div>
+              </div>
+            </div>
+            <div class="g2">
+              <div class="f">
+                <label id="lbl_T_suc">T₁ — Teplota sania [°C]</label>
+                <input type="number" id="T_suc" value="-5" step="0.5" placeholder="napr. -5">
+              </div>
+              <div class="f">
+                <label id="lbl_P_suc">P₁ — Tlak sania <span id="punit_lbl_suc">[bar(a)]</span></label>
+                <input type="number" id="P_suc" value="4.5" step="0.1" min="0.1" placeholder="napr. 4.5">
+              </div>
+            </div>
+          </div>
+
+          <!-- POINT 2 -->
+          <div class="pt-panel pt2">
+            <div class="pt-header">
+              <div class="pt-circle c2">2</div>
+              <div>
+                <div class="pt-name" data-i18n="pt2_name">Výtlak kompresora</div>
+                <div class="pt-sub" data-i18n="pt2_sub">Výstup kompresora → vstup kondenzátora</div>
+              </div>
+            </div>
+            <div class="g2">
+              <div class="f">
+                <label>T₂ — <span data-i18n="lbl_Tdisch">Teplota výtlaku</span> [°C]</label>
+                <input type="number" id="T_disch" value="75" step="0.5" placeholder="napr. 75">
+              </div>
+              <div class="f">
+                <label>P₂ — <span data-i18n="lbl_Pdisch">Tlak výtlaku</span> <span id="punit_lbl_disch">[bar(a)]</span></label>
+                <input type="number" id="P_disch" value="24.0" step="0.1" min="0.1" placeholder="napr. 24">
+              </div>
+            </div>
+          </div>
+
+          <!-- POINT 3 -->
+          <div class="pt-panel pt3">
+            <div class="pt-header">
+              <div class="pt-circle c3">3</div>
+              <div>
+                <div class="pt-name" data-i18n="pt3_name">Kvapalinová vetva</div>
+                <div class="pt-sub" data-i18n="pt3_sub">Výstup kondenzátora / pred exp. ventilom</div>
+              </div>
+            </div>
+            <div class="g2">
+              <div class="f">
+                <label>T₃ — <span data-i18n="lbl_Tliq">Teplota kvapaliny</span> [°C]</label>
+                <input type="number" id="T_liq" value="40" step="0.5" placeholder="napr. 40">
+              </div>
+              <div class="f">
+                <label style="color:#9aa3b8">P₃ ≈ P₂ (voliteľné) <span id="punit_lbl_3">[bar(a)]</span></label>
+                <input type="number" id="P_liq" value="" step="0.1" min="0.1" placeholder="ak iné ako P₂">
+              </div>
+            </div>
+          </div>
+
+          <!-- POINT 4 -->
+          <div class="pt-panel pt4">
+            <div class="pt-header">
+              <div class="pt-circle c4">4</div>
+              <div>
+                <div class="pt-name" data-i18n="pt4_name">Za expanzným ventilom</div>
+                <div class="pt-sub" data-i18n="pt4_sub">Vstup do výparníka (2-fázová oblasť)</div>
+              </div>
+            </div>
+            <div class="g2">
+              <div class="f">
+                <label>T₄ — <span data-i18n="lbl_T_evap_in">Teplota vstupu výparníka</span> [°C]</label>
+                <input type="number" id="T_evap_in" value="" step="0.5" placeholder="nepovinné">
+              </div>
+              <div class="f">
+                <label style="color:#9aa3b8">ΔT <span data-i18n="lbl_dt_check">kontrola</span> [°C]</label>
+                <input type="number" id="dt_check" value="" step="0.5" placeholder="nepovinné">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional measured values -->
+        <div class="sec-label gray" data-i18n="sec_additional">Ďalšie namerané hodnoty</div>
+        <div class="g3">
+          <div class="f">
+            <label data-i18n="lbl_Tamb">T amb — Okolitá teplota [°C]</label>
+            <input type="number" id="T_amb" value="25" step="0.5" placeholder="napr. 25">
+          </div>
+          <div class="f">
+            <label data-i18n="lbl_T_evap_surf">T povrch výparníka [°C]</label>
+            <input type="number" id="T_evap_surf" value="" step="0.5" placeholder="nepovinné">
+          </div>
+          <div class="f">
+            <label data-i18n="lbl_note">Poznámka</label>
+            <input type="text" id="note_field" placeholder="Stroj, zákazník, dátum...">
+          </div>
+        </div>
+
+        <!-- COOLING CAPACITY INPUTS -->
+        <div class="sec-label" style="color:#059669;margin-top:16px">Výpočet chladiaceho výkonu <span style="font-size:8px;color:#9aa3b8;text-transform:none;letter-spacing:0">(A = príkon/prúd, B = zdvihový objem)</span></div>
+
+        <!-- Method A: Electric power -->
+        <div style="background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:10px;padding:12px 14px;margin-bottom:8px">
+          <div style="font-size:9px;font-weight:700;color:#059669;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">⚡ A — Elektrický príkon</div>
+          <div class="g3">
+            <div class="f">
+              <label>I — Prúd [A]</label>
+              <input type="number" id="I_meas" value="" step="0.1" min="0" placeholder="napr. 10.5" oninput="calcPower()">
+            </div>
+            <div class="f">
+              <label>U — Napätie [V]</label>
+              <input type="number" id="U_meas" value="" step="1" min="0" placeholder="napr. 230" oninput="calcPower()">
+            </div>
+            <div class="f">
+              <label style="color:#059669;font-weight:800">P = I × U [W] <span style="font-size:8px;color:#9aa3b8;font-weight:400">(vypočíta sa automaticky)</span></label>
+              <input type="number" id="P_comp" value="" step="1" min="0" placeholder="alebo zadajte priamo" style="font-weight:700;color:#059669" title="Auto-calculated from I×U, or enter manually for 3-phase">
+            </div>
+          </div>
+          <div style="font-size:9px;color:#6b7280;margin-top:6px">
+            💡 <strong>1-fázové:</strong> P = I × U &nbsp;|&nbsp; <strong>3-fázové:</strong> P = I × U × √3 × cosφ → zadajte príkon priamo
+          </div>
+        </div>
+
+
+        <!-- Method C: Compressor displacement -->
+        <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:12px 14px;margin-bottom:8px">
+          <div style="font-size:9px;font-weight:700;color:#ea580c;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🔧 B — Zdvihový objem kompresora</div>
+          <div class="g4">
+            <div class="f">
+              <label>V<sub>h</sub> — Zdvihový objem [cm³]</label>
+              <input type="number" id="comp_vh" value="" step="0.1" min="0" placeholder="napr. 28.5">
+            </div>
+            <div class="f">
+              <label>n — Otáčky [RPM]</label>
+              <input type="number" id="comp_rpm" value="" step="50" min="0" placeholder="napr. 2900">
+            </div>
+            <div class="f">
+              <label>η<sub>vol</sub> — Obj. účinnosť [%]</label>
+              <input type="number" id="comp_etavol" value="75" step="1" min="1" max="100" placeholder="napr. 75">
+            </div>
+            <div class="f">
+              <label>Počet valcov / piestov</label>
+              <input type="number" id="comp_cyl" value="1" step="1" min="1" max="20" placeholder="1">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Calculate -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-num orange">3</div>
+          <div class="card-title" data-i18n="card3_title">Výpočet a diagnostika</div>
+        </div>
+        <button class="calc-btn" id="calcBtn" onclick="calculateCycle()" disabled>
+          🧮 <span data-i18n="btn_calc">Vypočítať cyklus + diagnostika</span>
+        </button>
+        <button class="reset-btn" onclick="resetAll()" data-i18n="btn_reset">↺ Vymazať výsledky</button>
+      </div>
+
+    </div><!-- /LEFT -->
+
+    <!-- ── RIGHT COLUMN ── -->
+    <div>
+
+      <!-- Results card -->
+      <div class="card" id="resultsCard" style="display:none">
+        <div class="card-header">
+          <div class="card-num green">✓</div>
+          <div class="card-title" data-i18n="card_res_title">Výsledky — Stavové body</div>
+        </div>
+
+        <!-- KPI row -->
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <!-- State points -->
+        <div class="sec-label" data-i18n="sec_statepoints">Stavové body cyklu</div>
+        <div class="res-state-grid" id="statePointsGrid"></div>
+
+        <!-- Derived values table -->
+        <div class="sec-label" data-i18n="sec_derived">Odvodené veličiny</div>
+        <table class="res-table" id="derivedTable">
+          <thead><tr>
+            <th data-i18n="th_param">Parameter</th>
+            <th data-i18n="th_value" style="text-align:right">Hodnota</th>
+            <th data-i18n="th_unit">Jedn.</th>
+            <th data-i18n="th_eval">Hodnotenie</th>
+          </tr></thead>
+          <tbody id="derivedBody"></tbody>
+        </table>
+
+      </div>
+
+      <!-- COOLING CAPACITY CARD – always shown after calc -->
+      <div class="card" id="capacityCard" style="display:none">
+        <div class="card-header">
+          <div class="card-num" style="background:linear-gradient(135deg,#059669,#047857)">❄</div>
+          <div class="card-title">Chladiaci výkon — Výsledky</div>
+          <div id="capMethodBadge" style="margin-left:auto;font-size:9px;font-weight:700;padding:3px 10px;border-radius:6px;background:#dcfce7;color:#14532d"></div>
+        </div>
+
+        <!-- Big KPI row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px" id="capKpiGrid"></div>
+
+        <!-- Detail table -->
+        <table class="res-table" id="capTable">
+          <thead><tr>
+            <th>Parameter</th>
+            <th style="text-align:right">Hodnota</th>
+            <th>Jednotka</th>
+          </tr></thead>
+          <tbody id="capBody"></tbody>
+        </table>
+
+        <!-- Specific values always shown -->
+        <div class="sec-label" style="color:#6b7280">Mernoenergetické hodnoty (bez prietoku)</div>
+        <table class="res-table" id="specTable">
+          <thead><tr><th>Parameter</th><th style="text-align:right">Hodnota</th><th>Jednotka</th></tr></thead>
+          <tbody id="specBody"></tbody>
+        </table>
+      </div>
+
+      <!-- P-H Diagram card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-num purple">P-H</div>
+          <div class="card-title" data-i18n="card_ph_title">P-H Diagram</div>
+          <div class="card-hint" id="phRefrigBadge" style="display:none"></div>
+        </div>
+        <div class="ph-wrap" id="phWrap">
+          <div class="ph-placeholder">
+            <div class="ph-icon">📊</div>
+            <p data-i18n="ph_placeholder">Zadajte namerané hodnoty a kliknite Vypočítať.<br>P-H diagram sa vygeneruje cez CoolProp.</p>
+          </div>
+        </div>
+        <div class="ph-legend" id="phLegend" style="display:none">
+          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#f97316"></div> <span data-i18n="leg_compression">1→2 Kompresia</span></div>
+          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#dc2626"></div> <span data-i18n="leg_condensation">2→3 Kondenzácia</span></div>
+          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#7c3aed"></div> <span data-i18n="leg_expansion">3→4 Expanzia</span></div>
+          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#2563eb"></div> <span data-i18n="leg_evaporation">4→1 Odparovanie</span></div>
+          <div class="ph-leg-item"><div class="ph-leg-line" style="background:#93b4f0;border-top:1px dashed #2563eb;height:0"></div> <span data-i18n="leg_sat_dome">Sýtostná krivka</span></div>
+        </div>
+      </div>
+
+      <!-- Diagnostics card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-num" style="background:linear-gradient(135deg,#ea580c,#c2410c)">🔍</div>
+          <div class="card-title" data-i18n="card_diag_title">Diagnostika — Pravdepodobné závady</div>
+          <div id="diagBadge" style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;display:none"></div>
+        </div>
+        <div id="diagOutput">
+          <div class="diag-empty">
+            <span>🔍</span>
+            <p data-i18n="diag_placeholder">Diagnostika sa zobrazí po výpočte cyklu.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /RIGHT -->
+  </div><!-- /main-layout -->
+</div><!-- /app -->
+
+<!-- ═══ HEADER EDITOR MODAL ═══ -->
+<div class="modal-overlay" id="headerModal" style="display:none" onclick="if(event.target===this)closeHeaderEditor()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head-icon">✏️</div>
+      <div class="modal-title" data-i18n="modal_hdr_title">Úprava hlavičky (Admin)</div>
+      <button class="modal-close" onclick="closeHeaderEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:11px;color:#9aa3b8;margin-bottom:14px" data-i18n="modal_hdr_desc">Zmeny sa uplatnia okamžite v hlavičke aplikácie.</div>
+      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px">
+        <div id="logoPreview" class="logo-upload-area" onclick="document.getElementById('logoFileInput').click()">
+          <div class="lu-hint">📷<br>Kliknite pre<br>nahranie loga</div>
+        </div>
+        <input type="file" id="logoFileInput" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
+        <div style="flex:1">
+          <div class="f" style="margin-bottom:8px">
+            <label data-i18n="lbl_hdr_title">Názov aplikácie</label>
+            <input type="text" id="hdr_title">
+          </div>
+          <div class="f">
+            <label data-i18n="lbl_hdr_sub">Podnadpis</label>
+            <input type="text" id="hdr_sub">
+          </div>
+        </div>
+      </div>
+      <div class="f" style="margin-bottom:8px">
+        <label data-i18n="lbl_hdr_footer">Päta / Firma</label>
+        <input type="text" id="hdr_footer">
+      </div>
+      <div style="font-size:10px;color:#9aa3b8;margin-top:6px" data-i18n="lbl_logo_hint">Logo: PNG/JPG, min. 100×100 px odporúčané.</div>
+      <div style="margin-top:12px;display:flex;justify-content:flex-end">
+        <button onclick="clearLogo()" style="font-size:11px;padding:5px 12px;border:1.5px solid #e4e9f4;background:#fff;color:#7a8299;border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif" data-i18n="btn_clear_logo">🗑 Odstrániť logo</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="cancel-btn" onclick="closeHeaderEditor()" data-i18n="btn_cancel">Zrušiť</button>
+      <button class="save-btn" onclick="saveHeader()" data-i18n="btn_save">✓ Uložiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COOLPROP LOADER ═══ -->
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  CoolProp WASM — rovnaký loader ako v kalkulátore (overený na GitHub Pages)
+//  CoolProp v7.0.0 je ES Modul → dynamic import(), NIE <script src>
+//  makeInstantiateWasm() obchádza GitHub Pages MIME type problém pre .wasm
+// ═══════════════════════════════════════════════════════════════════
+let cpReady = false;
+var Module = {};
+
+function onCoolPropReady() {
+  document.getElementById('cpBadge').className = 'status-badge st-ok';
+  document.getElementById('cpBadge').innerHTML = '<span class="st-dot"></span>CoolProp ✓';
+  const bar = document.getElementById('cpInfoBar');
+  bar.className = 'info-ok';
+  bar.innerHTML = '<span>✅</span><span><strong>CoolProp WASM</strong> je načítaný a pripravený. Výpočty sú teraz k dispozícii.</span>';
+  document.getElementById('calcBtn').disabled = false;
+}
+
+function cpSuccess(instance) {
+  Module = instance;
+  cpReady = true;
+  console.log('[CoolProp] ✅ Ready | PropsSI:', typeof Module.PropsSI === 'function');
+  onCoolPropReady();
+}
+
+function cpFallback(reason) {
+  console.warn('[CoolProp] Failed:', reason);
+  document.getElementById('cpBadge').className = 'status-badge st-warn';
+  document.getElementById('cpBadge').innerHTML = '<span class="st-dot"></span>CoolProp chyba';
+  const bar = document.getElementById('cpInfoBar');
+  bar.style.background = 'rgba(220,38,38,.08)';
+  bar.style.borderColor = 'rgba(220,38,38,.25)';
+  bar.innerHTML = '<span>❌</span><span><strong>CoolProp WASM sa nepodarilo načítať</strong> (' + reason + '). Uistite sa, že súbory <strong>coolprop.js</strong> a <strong>coolprop.wasm</strong> sú v rovnakom priečinku.</span>';
+}
+
+// Fetch WASM ako ArrayBuffer — obchádza GitHub Pages MIME type problém
+function makeInstantiateWasm() {
+  return function(imports, successCb) {
+    fetch('coolprop.wasm')
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.arrayBuffer();
+      })
+      .then(function(buf) { return WebAssembly.instantiate(buf, imports); })
+      .then(function(res) {
+        console.log('[CoolProp] ✅ WASM skompilovaný');
+        successCb(res.instance, res.module);
+      })
+      .catch(function(e) { console.error('[CoolProp] WASM chyba:', e); });
+    return {};
+  };
+}
+
+// CoolProp v7 = ES Modul → dynamic import()
+(function() {
+  import('./coolprop.js')
+    .then(function(mod) {
+      console.log('[CoolProp] ES modul načítaný');
+      var factory = (typeof mod.default === 'function') ? mod.default
+                  : (typeof mod === 'function') ? mod
+                  : null;
+      if (!factory) {
+        cpSuccess(mod.default || mod);
+        return;
+      }
+      return factory({
+        instantiateWasm: makeInstantiateWasm(),
+        onRuntimeInitialized: function() {},
+        print:    function(m) { console.log('[CP]', m); },
+        printErr: function(m) { console.warn('[CP]', m); }
+      });
+    })
+    .then(function(instance) {
+      if (instance) cpSuccess(instance);
+    })
+    .catch(function(err) {
+      console.warn('[CoolProp] ES import zlyhal:', err.message, '— skúšam classic script');
+      var s = document.createElement('script');
+      s.src = 'coolprop.js';
+      s.onerror = function() { cpFallback('coolprop.js sa nenašiel'); };
+      s.onload = function() {
+        console.log('[CoolProp] Classic script načítaný');
+        if (typeof Module !== 'undefined') {
+          var _orig = Module.onRuntimeInitialized;
+          Module.onRuntimeInitialized = function() {
+            if (_orig) _orig();
+            cpSuccess(Module);
+          };
+        }
+        setTimeout(function() {
+          if (!cpReady) cpFallback('WASM timeout (30s)');
+        }, 30000);
+      };
+      document.head.appendChild(s);
+    });
+})();
+</script>
+
+<!-- ═══ MAIN JAVASCRIPT ═══ -->
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  CONFIG & PINS
+// ═══════════════════════════════════════════════════════════════════
+const PIN_USER  = '2468';
+const PIN_ADMIN = '1357';
+let isAdmin = false;
+let activeLang = 'sk';
+
+// ═══════════════════════════════════════════════════════════════════
+//  TRANSLATIONS
+// ═══════════════════════════════════════════════════════════════════
+const TRANS = {
+  sk: {
+    pin_sub: 'Zadajte PIN pre prístup · v1.0',
+    card1_title: 'Chladivo a nastavenie',
+    card1_hint: 'Povinné nastavenie',
+    card2_title: 'Bloková schéma — namerané hodnoty',
+    card3_title: 'Výpočet a diagnostika',
+    card_res_title: 'Výsledky — Stavové body',
+    card_ph_title: 'P-H Diagram',
+    card_diag_title: 'Diagnostika — Pravdepodobné závady',
+    btn_calc: 'Vypočítať cyklus + diagnostika',
+    btn_reset: '↺ Vymazať výsledky',
+    lbl_refrigerant: 'Chladivo',
+    lbl_apptype: 'Typ aplikácie',
+    app_ac: 'Klimatizácia (AC)',
+    app_ref_med: 'Chladenie stredné (+5 až -15°C)',
+    app_ref_low: 'Chladenie nízke (-15 až -40°C)',
+    app_hp: 'Tepelné čerpadlo',
+    sec_pressure_unit: 'Jednotka tlaku',
+    pt1_name: 'Sanie kompresora',
+    pt1_sub: 'Výstup výparníka → vstup kompresora',
+    pt2_name: 'Výtlak kompresora',
+    pt2_sub: 'Výstup kompresora → vstup kondenzátora',
+    pt3_name: 'Kvapalinová vetva',
+    pt3_sub: 'Výstup kondenzátora / pred exp. ventilom',
+    pt4_name: 'Za expanzným ventilom',
+    pt4_sub: 'Vstup do výparníka (2-fázová oblasť)',
+    lbl_Tdisch: 'Teplota výtlaku',
+    lbl_Pdisch: 'Tlak výtlaku',
+    lbl_Tliq: 'Teplota kvapaliny',
+    sec_additional: 'Ďalšie namerané hodnoty',
+    lbl_Tamb: 'T amb — Okolitá teplota [°C]',
+    lbl_Pcomp: 'P₁ — Príkon kompresora [W]',
+    lbl_current: 'I — Prúd [A]',
+    lbl_voltage: 'U — Napätie [V]',
+    lbl_T_evap_surf: 'T povrch výparníka [°C]',
+    lbl_note: 'Poznámka',
+    lbl_T_evap_in: 'Teplota vstupu výparníka',
+    lbl_dt_check: 'kontrola',
+    sec_statepoints: 'Stavové body cyklu',
+    sec_derived: 'Odvodené veličiny',
+    sec_massflow: 'Prietok a výkony (príkon zadaný)',
+    th_param: 'Parameter',
+    th_value: 'Hodnota',
+    th_unit: 'Jedn.',
+    th_eval: 'Hodnotenie',
+    ph_placeholder: 'Zadajte namerané hodnoty a kliknite Vypočítať.\nP-H diagram sa vygeneruje cez CoolProp.',
+    diag_placeholder: 'Diagnostika sa zobrazí po výpočte cyklu.',
+    leg_compression: '1→2 Kompresia',
+    leg_condensation: '2→3 Kondenzácia',
+    leg_expansion: '3→4 Expanzia',
+    leg_evaporation: '4→1 Odparovanie',
+    leg_sat_dome: 'Sýtostná krivka',
+    modal_hdr_title: 'Úprava hlavičky (Admin)',
+    modal_hdr_desc: 'Zmeny sa uplatnia okamžite v hlavičke aplikácie.',
+    lbl_hdr_title: 'Názov aplikácie',
+    lbl_hdr_sub: 'Podnadpis',
+    lbl_hdr_footer: 'Päta / Firma',
+    lbl_logo_hint: 'Logo: PNG/JPG, min. 100×100 px odporúčané.',
+    btn_clear_logo: '🗑 Odstrániť logo',
+    btn_cancel: 'Zrušiť',
+    btn_save: '✓ Uložiť',
+    // Diagnostic messages
+    d_flood_name: 'Záplava kompresora (flood-back)',
+    d_flood_desc: 'Záporný alebo veľmi nízky prehriat — kvapalné chladivo vstupuje do kompresora. Hrozí mechanické poškodenie!',
+    d_lowsh_name: 'Veľmi nízky prehriat',
+    d_lowsh_desc: 'Prehriat pod 3 °C — riziko záplavy. Skontrolujte expanzný ventil.',
+    d_highsh_name: 'Vysoký prehriat',
+    d_highsh_desc: 'Prehriat nad 25 °C — nízky prietok chladiva, znížený výkon.',
+    d_flashgas_name: 'Flash-gas v kvapalinovej vetve',
+    d_flashgas_desc: 'Záporné podchladzenie — para v kvapalinovom potrubí. Expanzný ventil nefunguje správne.',
+    d_lowsc_name: 'Nízke podchladzenie',
+    d_lowsc_desc: 'Podchladzenie pod 2 °C naznačuje nedostatok chladiva alebo slabý výkon kondenzátora.',
+    d_highsc_name: 'Vysoké podchladzenie',
+    d_highsc_desc: 'Podchladzenie nad 15 °C — možné preplnenie chladivom.',
+    d_highdisch_name: 'Kriticky vysoká teplota výtlaku',
+    d_highdisch_desc: 'Teplota výtlaku nad 120 °C — nebezpečenstvo poškodenia kompresora a karbonizácia oleja!',
+    d_warndisch_name: 'Zvýšená teplota výtlaku',
+    d_warndisch_desc: 'Teplota výtlaku nad 100 °C — zvýšená teplota kompresorového oleja.',
+    d_highcr_name: 'Vysoký kompresný pomer',
+    d_highcr_desc: 'Kompresný pomer nad 8 — nízka objemová účinnosť, vysoká teplota výtlaku.',
+    d_lowcr_name: 'Nízky kompresný pomer',
+    d_lowcr_desc: 'Kompresný pomer pod 1,5 — možná porucha ventilov kompresora alebo chyba merania.',
+    d_loweta_name: 'Nízka izentropická účinnosť kompresora',
+    d_loweta_desc: 'Izentropická účinnosť pod 50 % — kompresor môže byť opotrebovaný.',
+    d_higheta_name: 'Chyba merania (η > 100 %)',
+    d_higheta_desc: 'Izentropická účinnosť nad 100 % — chyba v meraní teplôt alebo tlakov.',
+    d_highcond_name: 'Vysoká kondenzačná teplota',
+    d_highcond_desc: 'Kondenzačná teplota je príliš vysoko nad okolitou teplotou — znečistený kondenzátor alebo nedostatočný prietok vzduchu.',
+    d_pswap_name: 'Chyba merania — vymenené tlakomery',
+    d_pswap_desc: 'Tlak sania nesmie byť väčší alebo rovný tlaku výtlaku. Skontrolujte zapojenie tlakomerov!',
+    d_lowcop_name: 'Nízky COP',
+    d_lowcop_desc: 'Energetická účinnosť systému je nízka. Systém spotrebuje viac elektriny ako je potrebné.',
+    d_highx4_name: 'Vysoký podiel pary za expanziou',
+    d_highx4_desc: 'Veľký podiel pary za expanzným ventilom znižuje využiteľnosť výparníka.',
+    d_noncond_name: 'Možné nekondenzovateľné plyny',
+    d_noncond_desc: 'Kondenzačná teplota je výrazne vyššia ako by zodpovedala tlaku — možné vzduchové plyny v systéme.',
+    d_ok: 'Žiadne závažné závady nenájdené',
+    d_ok_desc: 'Systém pracuje v normálnych parametroch. Pokračujte v pravidelnom monitoringu.',
+    cause_lbl: 'Príčiny:',
+    action_lbl: 'Opatrenia:',
+  },
+  en: {
+    pin_sub: 'Enter PIN to access · v1.0',
+    card1_title: 'Refrigerant & Setup',
+    card1_hint: 'Required setup',
+    card2_title: 'Block Diagram — Measured Values',
+    card3_title: 'Calculation & Diagnostics',
+    card_res_title: 'Results — State Points',
+    card_ph_title: 'P-H Diagram',
+    card_diag_title: 'Diagnostics — Probable Faults',
+    btn_calc: 'Calculate Cycle + Diagnostics',
+    btn_reset: '↺ Clear Results',
+    lbl_refrigerant: 'Refrigerant',
+    lbl_apptype: 'Application Type',
+    app_ac: 'Air Conditioning (AC)',
+    app_ref_med: 'Medium refrigeration (+5 to -15°C)',
+    app_ref_low: 'Low refrigeration (-15 to -40°C)',
+    app_hp: 'Heat Pump',
+    sec_pressure_unit: 'Pressure Unit',
+    pt1_name: 'Compressor suction',
+    pt1_sub: 'Evaporator outlet → Compressor inlet',
+    pt2_name: 'Compressor discharge',
+    pt2_sub: 'Compressor outlet → Condenser inlet',
+    pt3_name: 'Liquid line',
+    pt3_sub: 'Condenser outlet / before expansion valve',
+    pt4_name: 'After expansion valve',
+    pt4_sub: 'Evaporator inlet (two-phase region)',
+    lbl_Tdisch: 'Discharge temperature',
+    lbl_Pdisch: 'Discharge pressure',
+    lbl_Tliq: 'Liquid temperature',
+    sec_additional: 'Additional measured values',
+    lbl_Tamb: 'T amb — Ambient temperature [°C]',
+    lbl_Pcomp: 'P₁ — Compressor power input [W]',
+    lbl_current: 'I — Current [A]',
+    lbl_voltage: 'U — Voltage [V]',
+    lbl_T_evap_surf: 'Evaporator surface temperature [°C]',
+    lbl_note: 'Note',
+    lbl_T_evap_in: 'Evaporator inlet temperature',
+    lbl_dt_check: 'check',
+    sec_statepoints: 'Cycle state points',
+    sec_derived: 'Derived values',
+    sec_massflow: 'Mass flow & capacities (power input provided)',
+    th_param: 'Parameter',
+    th_value: 'Value',
+    th_unit: 'Unit',
+    th_eval: 'Assessment',
+    ph_placeholder: 'Enter measured values and click Calculate.\nP-H diagram will be generated via CoolProp.',
+    diag_placeholder: 'Diagnostics will appear after cycle calculation.',
+    leg_compression: '1→2 Compression',
+    leg_condensation: '2→3 Condensation',
+    leg_expansion: '3→4 Expansion',
+    leg_evaporation: '4→1 Evaporation',
+    leg_sat_dome: 'Saturation curve',
+    modal_hdr_title: 'Edit Header (Admin)',
+    modal_hdr_desc: 'Changes apply immediately to the app header.',
+    lbl_hdr_title: 'Application title',
+    lbl_hdr_sub: 'Subtitle',
+    lbl_hdr_footer: 'Footer / Company',
+    lbl_logo_hint: 'Logo: PNG/JPG, min. 100×100 px recommended.',
+    btn_clear_logo: '🗑 Remove logo',
+    btn_cancel: 'Cancel',
+    btn_save: '✓ Save',
+    d_flood_name: 'Compressor flood-back',
+    d_flood_desc: 'Negative or very low superheat — liquid refrigerant entering compressor. Risk of mechanical damage!',
+    d_lowsh_name: 'Very low superheat',
+    d_lowsh_desc: 'Superheat below 3°C — flood-back risk. Check expansion valve.',
+    d_highsh_name: 'High superheat',
+    d_highsh_desc: 'Superheat above 25°C — low refrigerant flow, reduced capacity.',
+    d_flashgas_name: 'Flash gas in liquid line',
+    d_flashgas_desc: 'Negative subcooling — vapor in liquid line. Expansion valve will not work correctly.',
+    d_lowsc_name: 'Low subcooling',
+    d_lowsc_desc: 'Subcooling below 2°C indicates low refrigerant charge or poor condenser performance.',
+    d_highsc_name: 'High subcooling',
+    d_highsc_desc: 'Subcooling above 15°C — possible refrigerant overcharge.',
+    d_highdisch_name: 'Critically high discharge temperature',
+    d_highdisch_desc: 'Discharge temperature above 120°C — risk of compressor damage and oil carbonization!',
+    d_warndisch_name: 'Elevated discharge temperature',
+    d_warndisch_desc: 'Discharge temperature above 100°C — elevated compressor oil temperature.',
+    d_highcr_name: 'High compression ratio',
+    d_highcr_desc: 'Compression ratio above 8 — low volumetric efficiency, high discharge temperature.',
+    d_lowcr_name: 'Low compression ratio',
+    d_lowcr_desc: 'Compression ratio below 1.5 — possible compressor valve failure or measurement error.',
+    d_loweta_name: 'Low compressor isentropic efficiency',
+    d_loweta_desc: 'Isentropic efficiency below 50% — compressor may be worn.',
+    d_higheta_name: 'Measurement error (η > 100%)',
+    d_higheta_desc: 'Isentropic efficiency above 100% — error in temperature or pressure measurements.',
+    d_highcond_name: 'High condensing temperature',
+    d_highcond_desc: 'Condensing temperature is too far above ambient — dirty condenser or insufficient airflow.',
+    d_pswap_name: 'Measurement error — swapped pressure gauges',
+    d_pswap_desc: 'Suction pressure cannot be ≥ discharge pressure. Check pressure gauge connections!',
+    d_lowcop_name: 'Low COP',
+    d_lowcop_desc: 'System energy efficiency is low. More electricity consumed than necessary.',
+    d_highx4_name: 'High vapor quality after expansion',
+    d_highx4_desc: 'Large vapor fraction after expansion valve reduces evaporator utilization.',
+    d_noncond_name: 'Possible non-condensables',
+    d_noncond_desc: 'Condensing temperature significantly above what pressure would indicate — possible air/gas in system.',
+    d_ok: 'No serious faults found',
+    d_ok_desc: 'System is operating within normal parameters. Continue regular monitoring.',
+    cause_lbl: 'Causes:',
+    action_lbl: 'Actions:',
+  }
+};
+
+function t(key){ return (TRANS[activeLang]||TRANS.sk)[key] || TRANS.sk[key] || key; }
+
+function setLang(lang){
+  activeLang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if(val) el.textContent = val;
+  });
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  const lb = document.getElementById('lb_'+lang);
+  if(lb) lb.classList.add('active');
+  document.getElementById('pinSubTxt').textContent = t('pin_sub');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  PIN
+// ═══════════════════════════════════════════════════════════════════
+let pinBuf = '';
+function pinPress(d){ if(pinBuf.length>=4) return; pinBuf+=d; dots(); if(pinBuf.length===4) checkPin(); }
+function pinBack(){ pinBuf=pinBuf.slice(0,-1); dots(); document.getElementById('pinErr').textContent=''; }
+function dots(){ for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled',i<pinBuf.length); }
+function checkPin(){
+  if(pinBuf === PIN_ADMIN){ isAdmin=true; unlockApp(); }
+  else if(pinBuf === PIN_USER){ isAdmin=false; unlockApp(); }
+  else {
+    document.getElementById('pinErr').textContent = activeLang==='sk' ? 'Nesprávny PIN. Skúste znova.' : 'Wrong PIN. Try again.';
+    pinBuf=''; setTimeout(()=>{ dots(); },600);
+  }
+}
+function unlockApp(){
+  document.getElementById('pinScreen').style.display='none';
+  document.getElementById('appMain').style.display='block';
+  if(isAdmin){
+    document.getElementById('adminBadge').style.display='inline-flex';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  THERMO HELPERS (uses CoolProp Module)
+// ═══════════════════════════════════════════════════════════════════
+function cpProp(out, in1, v1, in2, v2, fluid){
+  return Module.PropsSI(out, in1, v1, in2, v2, fluid);
+}
+
+function satP_from_T(T_C, fluid){
+  return cpProp('P','T',T_C+273.15,'Q',0,fluid) / 1e5; // bar(a)
+}
+
+function T_from_satP(P_bar, fluid){
+  return cpProp('T','P',P_bar*1e5,'Q',0,fluid) - 273.15; // °C
+}
+
+function enthalpy(P_bar, T_C, fluid, phase){
+  // Returns kJ/kg
+  if(phase === 'liquid'){
+    return cpProp('H','T',T_C+273.15,'Q',0,fluid)/1000;
+  } else {
+    return cpProp('H','P',P_bar*1e5,'T',T_C+273.15,fluid)/1000;
+  }
+}
+
+function entropy(P_bar, T_C, fluid){
+  return cpProp('S','P',P_bar*1e5,'T',T_C+273.15,fluid)/1000; // kJ/(kg·K)
+}
+
+function enthalpy_from_PS(P_bar, S_kJkgK, fluid){
+  return cpProp('H','P',P_bar*1e5,'S',S_kJkgK*1000,fluid)/1000;
+}
+
+function density(P_bar, T_C, fluid){
+  return cpProp('D','P',P_bar*1e5,'T',T_C+273.15,fluid); // kg/m³
+}
+
+function gaugeToAbs(val){ return val + 1.01325; }
+
+// ═══════════════════════════════════════════════════════════════════
+//  PRESSURE UNIT HANDLING
+// ═══════════════════════════════════════════════════════════════════
+function getPUnit(){ return document.querySelector('input[name="punit"]:checked').value; }
+
+function getAbsP(inputId){
+  const val = parseFloat(document.getElementById(inputId).value);
+  if(isNaN(val)) return NaN;
+  return getPUnit() === 'barg' ? gaugeToAbs(val) : val;
+}
+
+function updatePressureLabels(){
+  const u = getPUnit() === 'bara' ? 'bar(a)' : 'bar(g)';
+  ['suc','disch','3'].forEach(id=>{
+    const el = document.getElementById('punit_lbl_'+id);
+    if(el) el.textContent = '['+u+']';
+  });
+}
+
+function onRefrigChange(){ satDomeCache = {}; }
+
+// ═══════════════════════════════════════════════════════════════════
+//  MAIN CALCULATION
+// ═══════════════════════════════════════════════════════════════════
+let lastResult = null;
+let satDomeCache = {};
+
+function calculateCycle(){
+  if(!cpReady){ alert(activeLang==='sk'?'CoolProp sa ešte načítava, čakajte...':'CoolProp is still loading, please wait...'); return; }
+
+  const fluid = document.getElementById('refrigerantSel').value;
+
+  // Get inputs
+  const T1  = parseFloat(document.getElementById('T_suc').value);
+  const P1  = getAbsP('P_suc');
+  const T2  = parseFloat(document.getElementById('T_disch').value);
+  const P2  = getAbsP('P_disch');
+  const T3  = parseFloat(document.getElementById('T_liq').value);
+  const P3v = document.getElementById('P_liq').value.trim();
+  const P3  = P3v ? (getPUnit()==='barg' ? gaugeToAbs(parseFloat(P3v)) : parseFloat(P3v)) : P2;
+  const T_amb = parseFloat(document.getElementById('T_amb').value);
+  const P_comp = parseFloat(document.getElementById('P_comp').value) || null;
+  const I_meas = parseFloat(document.getElementById('I_meas').value) || null;
+  const U_meas = parseFloat(document.getElementById('U_meas').value) || null;
+  const comp_vh     = parseFloat(document.getElementById('comp_vh').value) || null;     // cm³
+  const comp_rpm    = parseFloat(document.getElementById('comp_rpm').value) || null;
+  const comp_etavol = parseFloat(document.getElementById('comp_etavol').value) || 75;
+  const comp_cyl    = parseFloat(document.getElementById('comp_cyl').value) || 1;
+
+  if([T1,P1,T2,P2,T3].some(isNaN)){
+    alert(activeLang==='sk'?'Vyplňte body 1, 2 a 3 (T a P).':'Fill in points 1, 2 and 3 (T and P).');
+    return;
+  }
+  if(P1 <= 0 || P2 <= 0){ alert('Tlaky musia byť kladné!'); return; }
+
+  try {
+    // Saturation temperatures
+    const Te_sat = T_from_satP(P1, fluid); // evaporating temp
+    const Tc_sat = T_from_satP(P2, fluid); // condensing temp
+
+    // State point 1: superheated vapor at suction
+    const h1 = enthalpy(P1, T1, fluid, 'vapor');
+    const s1 = entropy(P1, T1, fluid);
+    const rho1 = density(P1, T1, fluid);
+
+    // State point 2: superheated vapor at discharge
+    const h2 = enthalpy(P2, T2, fluid, 'vapor');
+
+    // State point 2s: isentropic discharge
+    const h2s = enthalpy_from_PS(P2, s1, fluid);
+
+    // State point 3: subcooled liquid
+    const h3 = enthalpy(P3, T3, fluid, 'liquid');
+
+    // State point 4: isenthalpic expansion
+    const h4 = h3;
+
+    // Vapor quality at point 4
+    const h4L = cpProp('H','P',P1*1e5,'Q',0,fluid)/1000;
+    const h4V = cpProp('H','P',P1*1e5,'Q',1,fluid)/1000;
+    const x4  = Math.max(0, Math.min(1, (h4 - h4L)/(h4V - h4L)));
+
+    // Derived cycle parameters
+    const SH  = T1 - Te_sat;       // superheat at compressor inlet [K]
+    const SC  = Tc_sat - T3;       // subcooling [K]
+    const CR  = P2 / P1;           // compression ratio
+    const q0  = h1 - h4;          // specific cooling effect [kJ/kg]
+    const w   = h2 - h1;          // specific compressor work [kJ/kg]
+    const qc  = h2 - h3;          // specific condenser heat rejection [kJ/kg]
+    const COP = q0 / w;
+    const eta_is = (h2s - h1) / (h2 - h1);
+
+    // ── Resolve mass flow from whichever method is provided ──
+    let mdot=null, Q_evap=null, Q_cond=null, COP_real=null, P_elec_used=null;
+    let capMethod = null;
+
+    // Method A: direct power input
+    if(P_comp && P_comp > 0 && w > 0){
+      mdot      = P_comp / (w * 1000);       // kg/s
+      P_elec_used = P_comp;
+      capMethod = 'A — Príkon: ' + P_comp.toFixed(0) + ' W';
+    }
+    // Method A2: I × U
+    else if(I_meas && U_meas && I_meas > 0 && U_meas > 0 && w > 0){
+      P_elec_used = I_meas * U_meas;
+      mdot      = P_elec_used / (w * 1000);
+      capMethod = 'A — I×U: ' + I_meas.toFixed(1) + 'A × ' + U_meas.toFixed(0) + 'V = ' + P_elec_used.toFixed(0) + ' W';
+    }
+    // Method B: compressor displacement
+    else if(comp_vh && comp_rpm && rho1 > 0 && w > 0){
+      const Vhm3 = comp_vh * 1e-6 * comp_cyl;       // m³/rev total
+      const n_rps = comp_rpm / 60;                    // rev/s
+      mdot      = Vhm3 * n_rps * (comp_etavol/100) * rho1; // kg/s
+      capMethod = 'B — Zdvihový objem: ' + (comp_vh*comp_cyl).toFixed(1) + ' cm³ × ' + comp_rpm + ' RPM × η=' + comp_etavol + '%';
+    }
+
+    if(mdot && mdot > 0 && q0 > 0){
+      Q_evap   = mdot * q0 * 1000;   // W
+      Q_cond   = mdot * qc * 1000;   // W
+      if(P_elec_used) COP_real = Q_evap / P_elec_used;
+    }
+
+    lastResult = {
+      fluid, T1, P1, T2, P2, T3, P3, T_amb,
+      P_comp, I_meas, U_meas,
+      h1, s1, rho1, h2, h2s, h3, h4,
+      Te_sat, Tc_sat, x4,
+      SH, SC, CR, q0, w, qc, COP, eta_is,
+      mdot, Q_evap, Q_cond, COP_real, P_elec_used, capMethod
+    };
+
+    displayResults(lastResult);
+    displayCapacity(lastResult);
+    updateDiagramCalc(lastResult);
+    drawPHDiagram(lastResult);
+    runDiagnostics(lastResult);
+    document.getElementById('resultsCard').style.display='block';
+    document.getElementById('capacityCard').style.display='block';
+
+  } catch(e){
+    console.error(e);
+    alert((activeLang==='sk'?'Chyba výpočtu: ':'Calculation error: ')+e.message);
+  }
+}
+
+function resetAll(){
+  lastResult = null;
+  document.getElementById('resultsCard').style.display='none';
+  document.getElementById('phWrap').innerHTML=`<div class="ph-placeholder"><div class="ph-icon">📊</div><p>${t('ph_placeholder')}</p></div>`;
+  document.getElementById('phLegend').style.display='none';
+  document.getElementById('phRefrigBadge').style.display='none';
+  document.getElementById('diagOutput').innerHTML=`<div class="diag-empty"><span>🔍</span><p>${t('diag_placeholder')}</p></div>`;
+  document.getElementById('diagBadge').style.display='none';
+  document.getElementById('capacityCard').style.display='none';
+  resetDiagramCalc();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DISPLAY RESULTS
+// ═══════════════════════════════════════════════════════════════════
+function displayResults(r){
+  // KPIs
+  const kpis = [
+    {lbl:'COP', val:r.COP.toFixed(2), u:'W/W', cls:'hl-green'},
+    {lbl:'Kompr. pomer', val:r.CR.toFixed(2), u:':1', cls:''},
+    {lbl:'η izentrop.', val:(r.eta_is*100).toFixed(1), u:'%', cls: r.eta_is>0.6?'hl-blue':'hl-orange'},
+    {lbl:'Prehriat SH', val:r.SH.toFixed(1), u:'K', cls: r.SH>=3&&r.SH<=20?'hl-green':'hl-orange'},
+    {lbl:'Podchladenie SC', val:r.SC.toFixed(1), u:'K', cls: r.SC>=2&&r.SC<=12?'hl-blue':'hl-orange'},
+    {lbl:'Podiel pary x₄', val:(r.x4*100).toFixed(1), u:'%', cls:''},
+  ];
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k=>
+    `<div class="kpi ${k.cls}"><div class="kpi-lbl">${k.lbl}</div><div><span class="kpi-val">${k.val}</span><span class="kpi-u">${k.u}</span></div></div>`
+  ).join('');
+
+  // State points
+  const pts = [
+    {cls:'rs1', num:'1', name:'Sanie', rows:[
+      ['T₁', r.T1.toFixed(2), '°C'], ['P₁', r.P1.toFixed(3), 'bar(a)'],
+      ['h₁', r.h1.toFixed(2), 'kJ/kg'], ['s₁', r.s1.toFixed(4), 'kJ/(kg·K)'],
+      ['ρ₁', r.rho1.toFixed(2), 'kg/m³'], ['T_e,sat', r.Te_sat.toFixed(2), '°C'],
+    ]},
+    {cls:'rs2', num:'2', name:'Výtlak', rows:[
+      ['T₂', r.T2.toFixed(2), '°C'], ['P₂', r.P2.toFixed(3), 'bar(a)'],
+      ['h₂', r.h2.toFixed(2), 'kJ/kg'], ['h₂ₛ', r.h2s.toFixed(2), 'kJ/kg'],
+      ['T_c,sat', r.Tc_sat.toFixed(2), '°C'], ['', '', ''],
+    ]},
+    {cls:'rs3', num:'3', name:'Kvapalina', rows:[
+      ['T₃', r.T3.toFixed(2), '°C'], ['P₃', r.P3.toFixed(3), 'bar(a)'],
+      ['h₃', r.h3.toFixed(2), 'kJ/kg'], ['SC', r.SC.toFixed(2), 'K'],
+      ['', '', ''], ['', '', ''],
+    ]},
+    {cls:'rs4', num:'4', name:'Za exp.', rows:[
+      ['h₄', r.h4.toFixed(2), 'kJ/kg'], ['P₄≈P₁', r.P1.toFixed(3), 'bar(a)'],
+      ['x₄', (r.x4*100).toFixed(1), '%'], ['T₄,sat', r.Te_sat.toFixed(2), '°C'],
+      ['', '', ''], ['', '', ''],
+    ]},
+  ];
+  document.getElementById('statePointsGrid').innerHTML = pts.map(p=>
+    `<div class="res-state-pt ${p.cls}">
+      <div class="rs-ptnum">Bod ${p.num} — ${p.name}</div>
+      ${p.rows.filter(r=>r[0]).map(r=>`<div class="rs-row"><span>${r[0]}</span><span class="rs-val">${r[1]}<small style="font-size:9px;color:#9aa3b8;margin-left:3px">${r[2]}</small></span></div>`).join('')}
+    </div>`
+  ).join('');
+
+  // Derived table
+  function evTag(ok, warn, val){
+    if(ok) return `<span style="font-size:9px;background:#dcfce7;color:#14532d;padding:2px 6px;border-radius:4px;font-weight:700">✓ OK</span>`;
+    if(warn) return `<span style="font-size:9px;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-weight:700">⚠ ${val}</span>`;
+    return `<span style="font-size:9px;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700">✗ ${val}</span>`;
+  }
+  const derived = [
+    {
+      name: activeLang==='sk'?'Prehriat (SH) na saní':'Superheat (SH) at suction',
+      val: r.SH.toFixed(2), unit: 'K',
+      ev: r.SH<0?evTag(0,0,'Záplava!'):r.SH<3?evTag(0,0,'Kriticky nízky'):r.SH>25?evTag(0,1,'Vysoký'):evTag(1,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Podchladzenie (SC)':'Subcooling (SC)',
+      val: r.SC.toFixed(2), unit: 'K',
+      ev: r.SC<0?evTag(0,0,'Flash-gas!'):r.SC<2?evTag(0,1,'Nízke'):r.SC>15?evTag(0,1,'Vysoké'):evTag(1,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Kompresný pomer (CR)':'Compression ratio (CR)',
+      val: r.CR.toFixed(3), unit: ':1',
+      ev: r.CR<1.5?evTag(0,0,'Podozrivo nízky'):r.CR>8?evTag(0,1,'Vysoký'):evTag(1,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Špecifický chladiaci výkon q₀':'Specific cooling effect q₀',
+      val: r.q0.toFixed(2), unit: 'kJ/kg',
+      ev: evTag(r.q0>0,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Špecifická práca kompresora w':'Specific compressor work w',
+      val: r.w.toFixed(2), unit: 'kJ/kg',
+      ev: evTag(r.w>0,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Špecifické teplo kondenzátora q_c':'Specific condenser heat q_c',
+      val: r.qc.toFixed(2), unit: 'kJ/kg',
+      ev: evTag(r.qc>0,0,'')
+    },
+    {
+      name: 'COP (termodyn.)',
+      val: r.COP.toFixed(3), unit: 'W/W',
+      ev: r.COP<1?evTag(0,0,'Nízky'):r.COP<1.5?evTag(0,1,'Nízky'):evTag(1,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Izentropická účinnosť η_is':'Isentropic efficiency η_is',
+      val: (r.eta_is*100).toFixed(1), unit: '%',
+      ev: r.eta_is<0?evTag(0,0,'Chyba mer.'):r.eta_is>1?evTag(0,0,'Chyba mer.'):r.eta_is<0.5?evTag(0,1,'Nízka'):evTag(1,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Teplota kondenzácie T_c,sat':'Condensing temp. T_c,sat',
+      val: r.Tc_sat.toFixed(2), unit: '°C',
+      ev: (!isNaN(r.T_amb)&&r.Tc_sat>r.T_amb+30)?evTag(0,1,'Vysoká'):evTag(1,0,'')
+    },
+    {
+      name: activeLang==='sk'?'Teplota odparovania T_e,sat':'Evaporating temp. T_e,sat',
+      val: r.Te_sat.toFixed(2), unit: '°C',
+      ev: evTag(1,0,'')
+    },
+  ];
+  document.getElementById('derivedBody').innerHTML = derived.map(d=>
+    `<tr><td>${d.name}</td><td class="num">${d.val}</td><td class="unit">${d.unit}</td><td>${d.ev}</td></tr>`
+  ).join('');
+
+  // Mass flow section
+  const mfSection = document.getElementById('massFlowSection');
+  const mfGrid = document.getElementById('massFlowGrid');
+  if(r.mdot){
+    mfSection.style.display='block';
+    const P_used = r.P_comp || (r.I_meas*r.U_meas);
+    mfGrid.innerHTML=[
+      {l:activeLang==='sk'?'Prietok chladiva':'Mass flow', v:(r.mdot*1000).toFixed(3), u:'g/s'},
+      {l:activeLang==='sk'?'Chladiaci výkon Q₀':'Cooling capacity Q₀', v:(r.Q_evap/1000).toFixed(2), u:'kW'},
+      {l:activeLang==='sk'?'Výkon kondenzátora Q_c':'Condenser capacity Q_c', v:(r.Q_cond/1000).toFixed(2), u:'kW'},
+      {l:'COP (reálny)', v:r.COP_real.toFixed(3), u:'W/W'},
+    ].map(e=>`<div class="ev"><div><div class="ev-lbl">${e.l}</div></div><div><span class="ev-val">${e.v}</span> <span class="ev-u">${e.u}</span></div></div>`).join('');
+  } else {
+    mfSection.style.display='none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  P-H DIAGRAM
+// ═══════════════════════════════════════════════════════════════════
+function generateSatDome(fluid){
+  if(satDomeCache[fluid]) return satDomeCache[fluid];
+  const critT = {
+    'R134a':100.5,'R404A':71.5,'R410A':71.5,'R407C':86.0,'R22':95.5,
+    'R290':96.0,'R600a':134.0,'R32':77.5,'R448A':85.5,'R449A':82.5,'R717':132.0
+  };
+  const Tmax = (critT[fluid]||85) - 0.8;
+  const Tmin = -90;
+  const liq=[], vap=[];
+  for(let T=Tmin; T<=Tmax; T+=3){
+    try{
+      const P  = cpProp('P','T',T+273.15,'Q',0,fluid)/1e5;
+      const hL = cpProp('H','T',T+273.15,'Q',0,fluid)/1000;
+      const hV = cpProp('H','T',T+273.15,'Q',1,fluid)/1000;
+      if(P>0 && isFinite(hL) && isFinite(hV)){
+        liq.push({h:hL,P}); vap.push({h:hV,P});
+      }
+    } catch(e){}
+  }
+  satDomeCache[fluid] = {liq,vap};
+  return {liq,vap};
+}
+
+function drawPHDiagram(r){
+  if(!cpReady) return;
+  const W=660, H=380;
+  const pad={top:28,right:22,bottom:46,left:52};
+  const pW=W-pad.left-pad.right, pH=H-pad.top-pad.bottom;
+
+  // Generate saturation dome
+  const dome = generateSatDome(r.fluid);
+
+  // Collect all h and P for axis bounds
+  const allH=[r.h1,r.h2,r.h3,r.h4];
+  const allP=[r.P1,r.P2];
+  dome.liq.forEach(p=>{allH.push(p.h);allP.push(p.P);});
+  dome.vap.forEach(p=>{allH.push(p.h);allP.push(p.P);});
+
+  const margin=30;
+  let hMin=Math.min(...allH)-margin, hMax=Math.max(...allH)+margin;
+  let PMin=Math.min(...allP)*0.6, PMax=Math.max(...allP)*1.5;
+  // Ensure PMin > 0
+  if(PMin<=0) PMin=0.05;
+
+  const tx = h => pad.left + (h-hMin)/(hMax-hMin)*pW;
+  const ty = P => pad.top + pH - Math.max(0,Math.min(1,(Math.log(P/PMin)/Math.log(PMax/PMin))))*pH;
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fafbfd;border-radius:8px">`;
+
+  // Background bands
+  const yP1=ty(r.P1), yP2=ty(r.P2);
+  svg+=`<rect x="${pad.left}" y="${pad.top}" width="${pW}" height="${pH}" fill="#f0f6ff" rx="2"/>`;
+  svg+=`<rect x="${pad.left}" y="${yP2}" width="${pW}" height="${yP1-yP2}" fill="#fff7f0" rx="0"/>`;
+
+  // Grid lines - pressure
+  const pressMarks=[];
+  for(let e=-1;e<=3;e++) for(let m of[1,1.5,2,3,5,7]) {
+    const P=m*Math.pow(10,e);
+    if(P>=PMin*0.9&&P<=PMax*1.1) pressMarks.push(P);
+  }
+  svg+=`<g stroke="#e4e9f4" stroke-width="0.5">`;
+  pressMarks.forEach(P=>{
+    const y=ty(P);
+    if(y>=pad.top&&y<=pad.top+pH) svg+=`<line x1="${pad.left}" y1="${y}" x2="${pad.left+pW}" y2="${y}"/>`;
+  });
+  // Grid lines - enthalpy
+  const hStep=Math.max(20,Math.ceil((hMax-hMin)/8/10)*10);
+  for(let h=Math.ceil(hMin/hStep)*hStep;h<=hMax;h+=hStep){
+    svg+=`<line x1="${tx(h)}" y1="${pad.top}" x2="${tx(h)}" y2="${pad.top+pH}"/>`;
+  }
+  svg+=`</g>`;
+
+  // Saturation dome
+  if(dome.liq.length>2){
+    let liqPts=dome.liq.map(p=>`${tx(p.h).toFixed(1)},${ty(p.P).toFixed(1)}`).join(' ');
+    let vapPts=[...dome.vap].reverse().map(p=>`${tx(p.h).toFixed(1)},${ty(p.P).toFixed(1)}`).join(' ');
+    svg+=`<polygon points="${liqPts} ${vapPts}" fill="rgba(37,99,235,0.06)" stroke="none"/>`;
+    svg+=`<polyline points="${liqPts}" fill="none" stroke="#3b82f6" stroke-width="1.8"/>`;
+    svg+=`<polyline points="${dome.vap.map(p=>`${tx(p.h).toFixed(1)},${ty(p.P).toFixed(1)}`).join(' ')}" fill="none" stroke="#3b82f6" stroke-width="1.8" stroke-dasharray="5,3"/>`;
+  }
+
+  // Pressure lines (HP and LP horizontal dashes)
+  svg+=`<line x1="${pad.left}" y1="${ty(r.P2)}" x2="${pad.left+pW}" y2="${ty(r.P2)}" stroke="#dc2626" stroke-width="1" stroke-dasharray="6,3" opacity="0.5"/>`;
+  svg+=`<line x1="${pad.left}" y1="${ty(r.P1)}" x2="${pad.left+pW}" y2="${ty(r.P1)}" stroke="#2563eb" stroke-width="1" stroke-dasharray="6,3" opacity="0.5"/>`;
+
+  // Cycle lines
+  // 1→2: compression (curved-ish line)
+  svg+=`<line x1="${tx(r.h1)}" y1="${ty(r.P1)}" x2="${tx(r.h2)}" y2="${ty(r.P2)}" stroke="#f97316" stroke-width="2.5"/>`;
+  // Arrow on 1→2
+  {const dx=tx(r.h2)-tx(r.h1),dy=ty(r.P2)-ty(r.P1),len=Math.sqrt(dx*dx+dy*dy);
+   const mx=tx(r.h1)+dx*0.6,my=ty(r.P1)+dy*0.6,ux=dx/len,uy=dy/len;
+   svg+=`<polygon points="${mx+ux*7},${my+uy*7} ${mx-ux*5+uy*4},${my-uy*5-ux*4} ${mx-ux*5-uy*4},${my-uy*5+ux*4}" fill="#f97316"/>`;}
+  // 2→3: condensation (horizontal at P2)
+  svg+=`<line x1="${tx(r.h2)}" y1="${ty(r.P2)}" x2="${tx(r.h3)}" y2="${ty(r.P2)}" stroke="#dc2626" stroke-width="2.5"/>`;
+  {const mx=(tx(r.h2)+tx(r.h3))/2,my=ty(r.P2);
+   svg+=`<polygon points="${mx+8},${my} ${mx-5},${my-4} ${mx-5},${my+4}" fill="#dc2626"/>`;}
+  // 3→4: expansion (isenthalpic, vertical)
+  svg+=`<line x1="${tx(r.h3)}" y1="${ty(r.P2)}" x2="${tx(r.h4)}" y2="${ty(r.P1)}" stroke="#7c3aed" stroke-width="2.5"/>`;
+  {const mx=(tx(r.h3)+tx(r.h4))/2,my=(ty(r.P2)+ty(r.P1))/2;
+   svg+=`<polygon points="${mx},${my+8} ${mx-4},${my-5} ${mx+4},${my-5}" fill="#7c3aed"/>`;}
+  // 4→1: evaporation (horizontal at P1)
+  svg+=`<line x1="${tx(r.h4)}" y1="${ty(r.P1)}" x2="${tx(r.h1)}" y2="${ty(r.P1)}" stroke="#2563eb" stroke-width="2.5"/>`;
+  {const mx=(tx(r.h4)+tx(r.h1))/2,my=ty(r.P1);
+   svg+=`<polygon points="${mx+8},${my} ${mx-5},${my-4} ${mx-5},${my+4}" fill="#2563eb"/>`;}
+
+  // State point circles + labels
+  const pts2=[
+    {h:r.h1,P:r.P1,lbl:'1',c:'#2563eb',dx:8,dy:-8},
+    {h:r.h2,P:r.P2,lbl:'2',c:'#dc2626',dx:8,dy:-8},
+    {h:r.h3,P:r.P2,lbl:'3',c:'#059669',dx:8,dy:-8},
+    {h:r.h4,P:r.P1,lbl:'4',c:'#7c3aed',dx:8,dy:-8},
+  ];
+  pts2.forEach(p=>{
+    const x=tx(p.h),y=ty(p.P);
+    svg+=`<circle cx="${x}" cy="${y}" r="6" fill="${p.c}" stroke="#fff" stroke-width="2"/>`;
+    svg+=`<text x="${x+p.dx}" y="${y+p.dy}" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="${p.c}">${p.lbl}</text>`;
+  });
+
+  // HP / LP labels on right
+  svg+=`<text x="${pad.left+pW+4}" y="${ty(r.P2)+4}" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#dc2626">HP</text>`;
+  svg+=`<text x="${pad.left+pW+4}" y="${ty(r.P1)+4}" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#2563eb">LP</text>`;
+
+  // Axes
+  svg+=`<line x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${pad.top+pH+1}" stroke="#0d1f3c" stroke-width="1.5"/>`;
+  svg+=`<line x1="${pad.left-1}" y1="${pad.top+pH}" x2="${pad.left+pW}" y2="${pad.top+pH}" stroke="#0d1f3c" stroke-width="1.5"/>`;
+
+  // Y axis ticks + labels
+  pressMarks.forEach(P=>{
+    const y=ty(P);
+    if(y>=pad.top&&y<=pad.top+pH){
+      svg+=`<line x1="${pad.left-4}" y1="${y}" x2="${pad.left}" y2="${y}" stroke="#0d1f3c" stroke-width="1"/>`;
+      const label = P>=1 ? P.toFixed(P%1===0?0:1) : P.toFixed(2);
+      svg+=`<text x="${pad.left-7}" y="${y+3.5}" text-anchor="end" font-family="Inter,sans-serif" font-size="8.5" fill="#7a8299">${label}</text>`;
+    }
+  });
+
+  // X axis ticks + labels
+  for(let h=Math.ceil(hMin/hStep)*hStep;h<=hMax;h+=hStep){
+    const x=tx(h);
+    svg+=`<line x1="${x}" y1="${pad.top+pH}" x2="${x}" y2="${pad.top+pH+4}" stroke="#0d1f3c" stroke-width="1"/>`;
+    svg+=`<text x="${x}" y="${pad.top+pH+14}" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" fill="#7a8299">${h}</text>`;
+  }
+
+  // Axis labels
+  svg+=`<text x="${pad.left+pW/2}" y="${H-4}" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#4b5563">h [kJ/kg]</text>`;
+  svg+=`<text x="11" y="${pad.top+pH/2}" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#4b5563" transform="rotate(-90,11,${pad.top+pH/2})">P [bar(a)]</text>`;
+
+  // Title
+  svg+=`<text x="${pad.left+pW/2}" y="${pad.top-8}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#9aa3b8">${r.fluid} — Parno-kompresný cyklus</text>`;
+
+  svg+=`</svg>`;
+
+  document.getElementById('phWrap').innerHTML = svg;
+  document.getElementById('phLegend').style.display='flex';
+  const rb = document.getElementById('phRefrigBadge');
+  rb.style.display='block'; rb.textContent=r.fluid;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DIAGNOSTICS ENGINE
+// ═══════════════════════════════════════════════════════════════════
+function runDiagnostics(r){
+  const faults=[];
+
+  // Helper
+  const add=(severity,nameKey,descKey,confidence,causes,actions)=>{
+    faults.push({severity, name:t(nameKey), desc:t(descKey), confidence, causes, actions});
+  };
+
+  // ── SUCTION SUPERHEAT ──
+  if(r.SH < 0){
+    add('CRITICAL','d_flood_name','d_flood_desc', 95,
+      activeLang==='sk'
+        ? ['Expanzný ventil príliš otvorený','Nízke tepelné zaťaženie výparníka','Porucha TXV/EEV']
+        : ['Expansion valve too open','Low evaporator heat load','TXV/EEV fault'],
+      activeLang==='sk'
+        ? ['Uzatvorte expanzný ventil','Skontrolujte tepelné zaťaženie','Overte bulb TXV']
+        : ['Close expansion valve','Check heat load','Verify TXV bulb']
+    );
+  } else if(r.SH < 3){
+    add('CRITICAL','d_lowsh_name','d_lowsh_desc', 85,
+      activeLang==='sk'
+        ? ['Expanzný ventil príliš otvorený','Nesprávny kontakt snímača TXV']
+        : ['Expansion valve too open','Poor TXV bulb contact'],
+      activeLang==='sk'
+        ? ['Nastavte expanzný ventil','Skontrolujte upevnenie snímača TXV']
+        : ['Adjust expansion valve','Check TXV bulb mounting']
+    );
+  } else if(r.SH > 25){
+    add('WARNING','d_highsh_name','d_highsh_desc', 80,
+      activeLang==='sk'
+        ? ['Nedostatok chladiva (únik)','Zapchatý filter-sušič','TXV príliš zatvorený','Zlý kontakt bulb TXV']
+        : ['Low refrigerant charge (leak)','Blocked filter-drier','TXV too closed','Poor TXV bulb contact'],
+      activeLang==='sk'
+        ? ['Skontrolujte plnenie chladiva a úniky','Vymeňte filter-sušič','Nastavte TXV']
+        : ['Check refrigerant charge and leaks','Replace filter-drier','Adjust TXV']
+    );
+  }
+
+  // ── SUBCOOLING ──
+  if(r.SC < 0){
+    add('WARNING','d_flashgas_name','d_flashgas_desc', 90,
+      activeLang==='sk'
+        ? ['Nedostatok chladiva','Zapchatý filter-sušič','Vysoký tlakový spád v kvapalinovom potrubí']
+        : ['Low refrigerant charge','Blocked filter-drier','High pressure drop in liquid line'],
+      activeLang==='sk'
+        ? ['Skontrolujte plnenie chladiva','Vymeňte filter-sušič']
+        : ['Check refrigerant charge','Replace filter-drier']
+    );
+  } else if(r.SC < 2){
+    add('WARNING','d_lowsc_name','d_lowsc_desc', 75,
+      activeLang==='sk'
+        ? ['Nedostatok chladiva (únik)','Znečistený kondenzátor']
+        : ['Low refrigerant charge (leak)','Dirty condenser'],
+      activeLang==='sk'
+        ? ['Skontrolujte úniky a plnenie','Vyčistite kondenzátor']
+        : ['Check for leaks and charge','Clean condenser']
+    );
+  } else if(r.SC > 15){
+    add('INFO','d_highsc_name','d_highsc_desc', 60,
+      activeLang==='sk'
+        ? ['Možné preplnenie chladivom','Výborný výkon kondenzátora']
+        : ['Possible refrigerant overcharge','Excellent condenser performance'],
+      activeLang==='sk'
+        ? ['Skontrolujte celkové plnenie chladiva']
+        : ['Verify total refrigerant charge']
+    );
+  }
+
+  // ── DISCHARGE TEMPERATURE ──
+  if(r.T2 > 120){
+    add('CRITICAL','d_highdisch_name','d_highdisch_desc', 95,
+      activeLang==='sk'
+        ? ['Znečistený kondenzátor','Nedostatok chladiva','Vysoký kompresný pomer','Vysoký prehriat sania']
+        : ['Dirty condenser','Low refrigerant charge','High compression ratio','High suction superheat'],
+      activeLang==='sk'
+        ? ['OKAMŽITE zastavte systém','Vyčistite kondenzátor','Skontrolujte chladivo']
+        : ['IMMEDIATELY stop system','Clean condenser','Check refrigerant']
+    );
+  } else if(r.T2 > 100){
+    add('WARNING','d_warndisch_name','d_warndisch_desc', 80,
+      activeLang==='sk'
+        ? ['Znečistený kondenzátor','Nízky objem chladiva','Vysoký prehriat']
+        : ['Dirty condenser','Low refrigerant','High superheat'],
+      activeLang==='sk'
+        ? ['Vyčistite kondenzátor','Skontrolujte chladivo a tlaky']
+        : ['Clean condenser','Check refrigerant and pressures']
+    );
+  }
+
+  // ── COMPRESSION RATIO ──
+  if(r.P1 >= r.P2){
+    add('CRITICAL','d_pswap_name','d_pswap_desc', 99,
+      activeLang==='sk'
+        ? ['Vymenené tlakomery','Porucha snímačov tlaku']
+        : ['Swapped pressure gauges','Pressure sensor fault'],
+      activeLang==='sk'
+        ? ['Skontrolujte zapojenie tlakomerov','Overte funkčnosť snímačov']
+        : ['Check pressure gauge connections','Verify sensor function']
+    );
+  } else {
+    if(r.CR > 8){
+      add('WARNING','d_highcr_name','d_highcr_desc', 85,
+        activeLang==='sk'
+          ? ['Znečistený kondenzátor','Príliš nízka teplota odparovania']
+          : ['Dirty condenser','Too low evaporating temperature'],
+        activeLang==='sk'
+          ? ['Vyčistite kondenzátor','Overte nastavenie systému']
+          : ['Clean condenser','Verify system setup']
+      );
+    } else if(r.CR < 1.5){
+      add('WARNING','d_lowcr_name','d_lowcr_desc', 80,
+        activeLang==='sk'
+          ? ['Porucha ventilov kompresora','Chyba merania tlaku']
+          : ['Compressor valve failure','Pressure measurement error'],
+        activeLang==='sk'
+          ? ['Skontrolujte kompresor','Overte tlakomery']
+          : ['Check compressor','Verify pressure gauges']
+      );
+    }
+  }
+
+  // ── ISENTROPIC EFFICIENCY ──
+  if(r.P1 < r.P2){
+    if(r.eta_is < 0.5 && r.eta_is > 0){
+      add('WARNING','d_loweta_name','d_loweta_desc', 75,
+        activeLang==='sk'
+          ? ['Opotrebované ventily kompresora','Vnútorné úniky kompresora','Opotrebovanie piestov/skrutiek']
+          : ['Worn compressor valves','Internal compressor leaks','Piston/screw wear'],
+        activeLang==='sk'
+          ? ['Zmerajte kompresnú skúšku','Zvážte generálnu opravu']
+          : ['Perform compression test','Consider compressor overhaul']
+      );
+    } else if(r.eta_is > 1.0){
+      add('WARNING','d_higheta_name','d_higheta_desc', 90,
+        activeLang==='sk'
+          ? ['Nepresný teplomer výtlaku','Nepresný tlakomer sania','Chyba snímačov']
+          : ['Inaccurate discharge thermometer','Inaccurate suction pressure gauge','Sensor errors'],
+        activeLang==='sk'
+          ? ['Skontrolujte kalibráciu snímačov','Overte merania referenčným prístrojom']
+          : ['Check sensor calibration','Verify with reference instrument']
+      );
+    }
+  }
+
+  // ── CONDENSING TEMPERATURE VS AMBIENT ──
+  if(!isNaN(r.T_amb) && r.Tc_sat > r.T_amb + 30){
+    add('WARNING','d_highcond_name','d_highcond_desc', 70,
+      activeLang==='sk'
+        ? ['Znečistený kondenzátor','Nedostatočný prietok vzduchu','Nekondenzovateľné plyny v systéme']
+        : ['Dirty condenser','Insufficient airflow','Non-condensables in system'],
+      activeLang==='sk'
+        ? ['Vyčistite kondenzátor','Skontrolujte ventilátor','Odplyňte systém']
+        : ['Clean condenser','Check fan','Purge system of non-condensables']
+    );
+  }
+
+  // ── COP ──
+  if(r.COP < 1.5 && r.q0 > 0){
+    add('INFO','d_lowcop_name','d_lowcop_desc', 60,
+      activeLang==='sk'
+        ? ['Vysoký kompresný pomer','Nízka účinnosť kompresora','Neoptimálne podmienky']
+        : ['High compression ratio','Low compressor efficiency','Suboptimal conditions'],
+      activeLang==='sk'
+        ? ['Znižte kondenzačnú teplotu','Zvýšte teplotu odparovania ak je možné','Skontrolujte kompresor']
+        : ['Reduce condensing temperature','Raise evaporating temperature if possible','Check compressor']
+    );
+  }
+
+  // ── VAPOR QUALITY x4 ──
+  if(r.x4 > 0.35){
+    add('INFO','d_highx4_name','d_highx4_desc', 60,
+      activeLang==='sk'
+        ? ['Nízke podchladzenie pred expanziou','Nedostatok chladiva']
+        : ['Low subcooling before expansion','Low refrigerant charge'],
+      activeLang==='sk'
+        ? ['Zlepšite podchladzovanie','Skontrolujte plnenie chladiva']
+        : ['Improve subcooling','Check refrigerant charge']
+    );
+  }
+
+  displayDiagnostics(faults);
+}
+
+function displayDiagnostics(faults){
+  const out = document.getElementById('diagOutput');
+  const badge = document.getElementById('diagBadge');
+
+  if(faults.length===0){
+    out.innerHTML=`<div class="fault-item fault-ok">
+      <div class="fault-head">
+        <span class="fault-badge fb-info">✓ OK</span>
+        <span class="fault-name">${t('d_ok')}</span>
+      </div>
+      <div class="fault-desc">${t('d_ok_desc')}</div>
+    </div>`;
+    badge.style.display='block';
+    badge.style.background='#dcfce7'; badge.style.color='#14532d';
+    badge.textContent='✓ Systém OK';
+    return;
+  }
+
+  const critCount=faults.filter(f=>f.severity==='CRITICAL').length;
+  const warnCount=faults.filter(f=>f.severity==='WARNING').length;
+  badge.style.display='block';
+  if(critCount>0){badge.style.background='#fee2e2';badge.style.color='#991b1b';badge.textContent=`✗ ${critCount} KRITICKÁ`+(critCount>1?'+'+(warnCount+faults.filter(f=>f.severity==='INFO').length)+' ďalších':'');}
+  else if(warnCount>0){badge.style.background='#fef3c7';badge.style.color='#92400e';badge.textContent=`⚠ ${warnCount} upozornení`;}
+  else {badge.style.background='#eff6ff';badge.style.color='#1e40af';badge.textContent='ℹ Informácie';}
+
+  out.innerHTML = faults.map(f=>{
+    const sevClass=f.severity==='CRITICAL'?'fault-critical':f.severity==='WARNING'?'fault-warning':'fault-info';
+    const badgeClass=f.severity==='CRITICAL'?'fb-critical':f.severity==='WARNING'?'fb-warning':'fb-info';
+    const sevLabel=f.severity==='CRITICAL'?'KRITICKÁ':f.severity==='WARNING'?'VAROVANIE':'INFO';
+    return `<div class="fault-item ${sevClass}">
+      <div class="fault-head">
+        <span class="fault-badge ${badgeClass}">${sevLabel}</span>
+        <span class="fault-name">${f.name}</span>
+        <span class="fault-conf">${f.confidence}% istota</span>
+      </div>
+      <div class="fault-desc">${f.desc}</div>
+      <div class="fault-causes"><strong>${t('cause_lbl')}</strong> ${f.causes.join(' · ')}</div>
+      <div style="margin-top:5px">
+        <strong style="font-size:9.5px;color:#6b7280">${t('action_lbl')}</strong>
+        ${f.actions.map(a=>`<span class="fault-action">${a}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  HEADER EDITOR
+// ═══════════════════════════════════════════════════════════════════
+let headerData = {
+  title: 'AES — Chladiaci Okruh Analyzátor',
+  sub: 'Diagnostika reálneho chladiaceho okruhu · P-H diagram · CoolProp | AES s.r.o. — Advanced Energy Systems',
+  footer: 'AES s.r.o. — Advanced Energy Systems | www.aes-slovakia.eu | Farská 50, 949 01 Nitra, Slovakia',
+  logoDataUrl: null
+};
+
+function openHeaderEditor(){
+  if(!isAdmin){
+    const btn = document.getElementById('tbEditBtn');
+    if(btn){ btn.textContent='🔒 Len Admin'; setTimeout(()=>btn.textContent='✏️ Upraviť hlavičku',2000); }
+    return;
+  }
+  document.getElementById('hdr_title').value  = headerData.title;
+  document.getElementById('hdr_sub').value    = headerData.sub;
+  document.getElementById('hdr_footer').value = headerData.footer;
+  updateLogoPreview();
+  document.getElementById('headerModal').style.display='flex';
+}
+function closeHeaderEditor(){ document.getElementById('headerModal').style.display='none'; }
+function saveHeader(){
+  headerData.title  = document.getElementById('hdr_title').value.trim() || headerData.title;
+  headerData.sub    = document.getElementById('hdr_sub').value.trim();
+  headerData.footer = document.getElementById('hdr_footer').value.trim();
+  applyHeader();
+  closeHeaderEditor();
+}
+function applyHeader(){
+  document.getElementById('tbTitleEl').textContent = headerData.title;
+  document.getElementById('tbSubEl').textContent   = headerData.sub;
+  const wrap = document.getElementById('tbLogoInner');
+  if(headerData.logoDataUrl){
+    wrap.innerHTML=`<img src="${headerData.logoDataUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:8px">`;
+    wrap.style.background='#fff';
+  } else {
+    wrap.innerHTML='🔬';
+    wrap.style.background='';
+  }
+}
+function handleLogoUpload(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ headerData.logoDataUrl=ev.target.result; updateLogoPreview(); };
+  reader.readAsDataURL(file);
+}
+function clearLogo(){
+  headerData.logoDataUrl=null;
+  document.getElementById('logoFileInput').value='';
+  updateLogoPreview();
+}
+function updateLogoPreview(){
+  const prev=document.getElementById('logoPreview');
+  if(headerData.logoDataUrl){
+    prev.innerHTML=`<img src="${headerData.logoDataUrl}" style="width:76px;height:76px;object-fit:contain;border-radius:8px">`;
+  } else {
+    prev.innerHTML='<div class="lu-hint">📷<br>Kliknite pre<br>nahranie loga</div>';
+  }
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHeaderEditor(); });
+
+
+// ═══════════════════════════════════════════════════════════════════
+//  DISPLAY COOLING CAPACITY
+// ═══════════════════════════════════════════════════════════════════
+function displayCapacity(r){
+  const card = document.getElementById('capacityCard');
+  const kpiGrid = document.getElementById('capKpiGrid');
+  const capBody = document.getElementById('capBody');
+  const specBody = document.getElementById('specBody');
+  const badge = document.getElementById('capMethodBadge');
+
+  // ── Specific values — always available ──
+  specBody.innerHTML = [
+    {n:'Merný chladiaci výkon q₀', v:r.q0.toFixed(2), u:'kJ/kg'},
+    {n:'Merná práca kompresora w',  v:r.w.toFixed(2),  u:'kJ/kg'},
+    {n:'Merný výkon kondenzátora q_c', v:r.qc.toFixed(2), u:'kJ/kg'},
+    {n:'COP (termodynamický)',      v:r.COP.toFixed(3), u:'W/W'},
+    {n:'Izentropická účinnosť η_is', v:(r.eta_is*100).toFixed(1), u:'%'},
+  ].map(d=>`<tr><td>${d.n}</td><td class="num">${d.v}</td><td class="unit">${d.u}</td></tr>`).join('');
+
+  if(!r.mdot || r.mdot <= 0){
+    // No mass flow — show only specific values, prompt user
+    kpiGrid.innerHTML = `
+      <div style="grid-column:1/-1;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:14px 16px;text-align:center;color:#92400e;font-size:11px">
+        <div style="font-size:20px;margin-bottom:6px">⚡</div>
+        <strong>Pre výpočet absolútneho výkonu (kW)</strong> zadajte aspoň jednu z možností:<br>
+        <strong>A</strong> — Prúd [A] + Napätie [V] alebo Príkon [W] &nbsp;|&nbsp; <strong>B</strong> — Zdvihový objem kompresora [cm³] + RPM
+      </div>`;
+    capBody.innerHTML = '';
+    badge.textContent = 'Len mernoenergetické hodnoty';
+    badge.style.background = '#fef3c7';
+    badge.style.color = '#92400e';
+    return;
+  }
+
+  // ── Mass flow known → full results ──
+  const mdot_gs  = r.mdot * 1000;          // g/s
+  const mdot_kgh = r.mdot * 3600;          // kg/h
+  const Q0_kW    = r.Q_evap / 1000;
+  const Qc_kW    = r.Q_cond / 1000;
+  const Pth_kW   = r.mdot * r.w;           // theoretical compressor power [kW]
+  const EER      = r.COP_real || r.COP;
+
+  badge.textContent = r.capMethod || 'Vypočítané';
+  badge.style.background = '#dcfce7';
+  badge.style.color = '#14532d';
+
+  // Big KPIs
+  kpiGrid.innerHTML = [
+    {lbl:'Chladiaci výkon Q₀', val:Q0_kW.toFixed(2), u:'kW', cls:'hl-green', big:true},
+    {lbl:'Výkon kondenzátora Q_c', val:Qc_kW.toFixed(2), u:'kW', cls:'hl-orange', big:true},
+    {lbl:'Prietok chladiva ṁ', val:mdot_gs.toFixed(2), u:'g/s', cls:'hl-blue'},
+    {lbl:'ṁ', val:mdot_kgh.toFixed(1), u:'kg/h', cls:''},
+    {lbl:'COP / EER', val:EER.toFixed(3), u:'W/W', cls:'hl-green'},
+    {lbl:'Teor. príkon kompresora', val:(Pth_kW*1000).toFixed(0), u:'W', cls:''},
+  ].map(k=>`<div class="kpi ${k.cls}" ${k.big?'style="grid-column:span 1"':''}">
+    <div class="kpi-lbl">${k.lbl}</div>
+    <div><span class="kpi-val" ${k.big?'style="font-size:22px"':''}>${k.val}</span><span class="kpi-u"> ${k.u}</span></div>
+  </div>`).join('');
+
+  // Detail table
+  let rows = [
+    {n:'Chladiaci výkon Q₀',          v:Q0_kW.toFixed(3),      u:'kW'},
+    {n:'Výkon kondenzátora Q_c',       v:Qc_kW.toFixed(3),      u:'kW'},
+    {n:'Hmotnostný prietok ṁ',         v:mdot_gs.toFixed(3),    u:'g/s'},
+    {n:'Hmotnostný prietok ṁ',         v:mdot_kgh.toFixed(2),   u:'kg/h'},
+    {n:'Teor. príkon kompresora',      v:(Pth_kW).toFixed(3),   u:'kW'},
+  ];
+  if(r.P_elec_used){
+    rows.push({n:'Elektrický príkon (meraný)', v:(r.P_elec_used/1000).toFixed(3), u:'kW'});
+    rows.push({n:'COP reálny (Q₀/P_el)',       v:(r.Q_evap/r.P_elec_used).toFixed(3), u:'W/W'});
+    rows.push({n:'Elektrická účinnosť motora', v:((Pth_kW*1000)/r.P_elec_used*100).toFixed(1), u:'%'});
+  }
+  if(r.Q_evap > 0){
+    rows.push({n:'Q₀ na jednotku prietoku', v:(Q0_kW/mdot_gs*1000).toFixed(1), u:'W/(g/s)'});
+  }
+  capBody.innerHTML = rows.map(d=>`<tr><td>${d.n}</td><td class="num">${d.v}</td><td class="unit">${d.u}</td></tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DIAGRAM LIVE VALUES
+// ═══════════════════════════════════════════════════════════════════
+function svgTspan(id, val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+function svgShow(id, vis){ const el=document.getElementById(id); if(el) el.setAttribute('display', vis?'':'none'); }
+
+function updateDiagramValues(){
+  const punit = getPUnit();
+  const pSuffix = punit==='bara' ? ' bar(a)' : ' bar(g)';
+  const fmt = v => isNaN(v) ? '—' : v.toFixed(1);
+
+  const T1 = parseFloat(document.getElementById('T_suc').value);
+  const P1 = parseFloat(document.getElementById('P_suc').value);
+  const T2 = parseFloat(document.getElementById('T_disch').value);
+  const P2 = parseFloat(document.getElementById('P_disch').value);
+  const T3 = parseFloat(document.getElementById('T_liq').value);
+  const T4 = parseFloat(document.getElementById('T_evap_in').value);
+
+  svgTspan('dv_T1', isNaN(T1)?'—':T1.toFixed(1));
+  svgTspan('dv_P1', isNaN(P1)?'—':(P1.toFixed(2)+pSuffix));
+  svgTspan('dv_T2', isNaN(T2)?'—':T2.toFixed(1));
+  svgTspan('dv_P2', isNaN(P2)?'—':(P2.toFixed(2)+pSuffix));
+  svgTspan('dv_T3', isNaN(T3)?'—':T3.toFixed(1));
+  svgTspan('dv_T4', isNaN(T4)?'— °C':(T4.toFixed(1)+' °C'));
+}
+
+function updateDiagramCalc(r){
+  // SH, Te near Pt 1
+  svgTspan('dv_SH', r.SH.toFixed(1));
+  svgTspan('dv_Te', r.Te_sat.toFixed(1));
+  svgShow('dv_SH_row', true);
+  // Tc near Pt 2
+  svgTspan('dv_Tc', r.Tc_sat.toFixed(1));
+  svgShow('dv_Tc_row', true);
+  // SC near Pt 3
+  svgTspan('dv_SC', r.SC.toFixed(1));
+  svgShow('dv_SC_row', true);
+  // x4 near Pt 4
+  svgTspan('dv_x4', (r.x4*100).toFixed(1));
+  svgShow('dv_x4_row', true);
+}
+
+function resetDiagramCalc(){
+  svgShow('dv_SH_row', false);
+  svgShow('dv_Tc_row', false);
+  svgShow('dv_SC_row', false);
+  svgShow('dv_x4_row', false);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════
+function calcPower(){
+  const I = parseFloat(document.getElementById('I_meas').value);
+  const U = parseFloat(document.getElementById('U_meas').value);
+  const pField = document.getElementById('P_comp');
+  if(!isNaN(I) && !isNaN(U) && I > 0 && U > 0){
+    const P = Math.round(I * U);
+    pField.value = P;
+    pField.style.color = '#059669';
+    pField.style.background = '#f0fdf4';
+  } else {
+    // Only clear if it was auto-set (green), not manually entered
+    if(pField.style.color === 'rgb(5, 150, 105)' || pField.style.color === '#059669'){
+      pField.value = '';
+      pField.style.color = '';
+      pField.style.background = '';
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setLang('sk');
+  updatePressureLabels();
+  // Wire live diagram updates to all input fields
+  ['T_suc','P_suc','T_disch','P_disch','T_liq','T_evap_in'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input', updateDiagramValues);
+  });
+  document.querySelectorAll('input[name="punit"]').forEach(r=>{
+    r.addEventListener('change', updateDiagramValues);
+  });
+  updateDiagramValues();
+});
+</script>
+</body>
+</html>
