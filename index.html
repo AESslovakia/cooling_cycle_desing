@@ -1289,8 +1289,10 @@ function calculateCycle(){
     document.getElementById('capacityCard').style.display='block';
 
   } catch(e){
-    console.error(e);
-    alert((activeLang==='sk'?'Chyba výpočtu: ':'Calculation error: ')+e.message);
+    console.error('[AES] Chyba:', e);
+    // Show which element is null for debugging
+    const msg = e.message + (e.stack ? '\n\n' + e.stack.split('\n').slice(0,3).join('\n') : '');
+    alert((activeLang==='sk'?'Chyba výpočtu: ':'Calculation error: ') + e.message);
   }
 }
 
@@ -1310,6 +1312,14 @@ function resetAll(){
 //  DISPLAY RESULTS
 // ═══════════════════════════════════════════════════════════════════
 function displayResults(r){
+  // Safety: check critical elements exist
+  const _kg = document.getElementById('kpiGrid');
+  const _sg = document.getElementById('statePointsGrid');
+  const _db = document.getElementById('derivedBody');
+  if(!_kg || !_sg || !_db){
+    console.error('[AES] displayResults: missing elements', {kpiGrid:!!_kg, statePointsGrid:!!_sg, derivedBody:!!_db});
+    return;
+  }
   // KPIs
   const kpis = [
     {lbl:'COP', val:r.COP.toFixed(2), u:'W/W', cls:'hl-green'},
@@ -1880,6 +1890,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHeaderEditor(
 function displayCapacity(r){
   const card = document.getElementById('capacityCard');
   const kpiGrid = document.getElementById('capKpiGrid');
+  if(!card || !kpiGrid){ console.error('[AES] displayCapacity: missing elements'); return; }
   const capBody = document.getElementById('capBody');
   const specBody = document.getElementById('specBody');
   const badge = document.getElementById('capMethodBadge');
